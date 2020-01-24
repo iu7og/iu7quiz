@@ -127,3 +127,9 @@ dmypy.json
 .idea
 *.o
 *.hi
+
+# MongoDB files
+data/db/
+
+# Admin utils
+utils/
