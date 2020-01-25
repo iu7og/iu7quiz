@@ -58,6 +58,7 @@ def delete(message):
     """
         debug
     """
+    print(message)
     print(Student.objects(user_id=message.from_user.id))
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
