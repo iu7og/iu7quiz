@@ -6,22 +6,28 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
-import telebot
 import time
-import schedule
 from multiprocessing import Process
-from functools import reduce
+import telebot
+import schedule
 from dbinstances import Student
 from config import BOT_TOKEN, GROUPS
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
 def schedule_message():
+    """
+        ...
+    """
     def sending_messages():
-        for student in Student.objects():
-            pass
+        """
+            wrapper
+        """
 
-    schedule.every(60).minutes.do(sending_messages)
+        for student in Student.objects():
+            bot.send_message(student.user_id, "Тестовое сообщение...")
+
+    schedule.every(2).minutes.do(sending_messages)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -42,13 +48,16 @@ def authorization(message):
                 telebot.types.InlineKeyboardButton(text=group_even, callback_data=group_even)
             )
 
-        bot.send_message(message.chat.id, "💬 Для регистрированы в системе укажите свою группу: ", reply_markup=markup)
+        bot.send_message(message.chat.id, "💬 Укажите свою группу: ", reply_markup=markup)
     else:
         bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
 @bot.message_handler(commands=['unreg'])
 def delete(message):
+    """
+        debug
+    """
     print(Student.objects(user_id=message.from_user.id))
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
@@ -61,7 +70,9 @@ def show_leaderboard(message):
     """
 
     if Student.objects(user_id=message.from_user.id):
-        msg = reduce(lambda y, x: y + "Логин: " + str(x.login) + "\nГруппа: " + x.group + "\n", Student.objects(), "")
+        msg = ''
+        for student in Student.objects():
+            msg += "Логин: " + str(student.login) + "\nГруппа: " + student.group + "\n"
     else:
         msg = '❌ Пожалуйста, завершите процес регистрации в системе (укажите свою группу).'
 
@@ -93,12 +104,16 @@ def query_handler(call):
 
     bot.answer_callback_query(call.id)
     if not Student.objects(user_id=call.message.chat.id):
-        student = Student(user_id=call.message.chat.id, login=call.message.chat.username, group=call.data)
+        student = Student(
+            user_id=call.message.chat.id,
+            login=call.message.chat.username,
+            group=call.data
+        )
+
         student.save()
-        bot.send_message(call.message.chat.id, '✅ Поздравляем! Вы успешно зарегистрированы в системе.', reply_markup='')
+        bot.send_message(call.message.chat.id, '✅ Вы успешно зарегистрированы в системе.')
 
 
 if __name__ == "__main__":
-    proc = Process(target=schedule_message, args=())
-    proc.start()
+    Process(target=schedule_message, args=()).start()
     bot.polling()

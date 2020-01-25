@@ -20,11 +20,3 @@ class Student(Document):
     login = StringField(required=True, max_length=200, default="None")
     group = StringField(required=True, max_length=200, default="None")
     meta = {'allow_inheritance': True}
-
-"""
-class TextPost(Student):
-    content = StringField(required=True)
-
-class LinkPost(Student):
-    url = StringField(required=True)
-"""
