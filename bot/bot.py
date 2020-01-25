@@ -7,24 +7,25 @@
 """
 
 import time
-from multiprocessing import Process
+import multiprocessing
 import telebot
 import schedule
+import mongoengine
+
 from dbinstances import Student
-from mongoengine import connect
 from config import TOKEN, HOST, GROUPS
 
 bot = telebot.TeleBot(TOKEN)
-connect(host=HOST)
+mongoengine.connect(host=HOST)
 
 
 def schedule_message():
     """
-        Планировщик сообщений. 
+        Планировщик сообщений.
     """
     def sending_messages():
         """
-            Отправка сообщения. 
+            Отправка сообщения.
         """
 
         for student in Student.objects():
@@ -74,7 +75,7 @@ def authorization(message):
 @bot.message_handler(commands=["leaderboard"])
 def show_leaderboard(message):
     """
-        Вывод лидерборда среди учеников. 
+        Вывод лидерборда среди учеников.
     """
 
     if Student.objects(user_id=message.from_user.id):
@@ -91,7 +92,7 @@ def show_leaderboard(message):
 @bot.message_handler(commands=["help"])
 def help_message(message):
     """
-        Информация о боте. 
+        Информация о боте.
     """
 
     bot.send_message(
@@ -126,5 +127,5 @@ def query_handler(call):
 
 
 if __name__ == "__main__":
-    Process(target=schedule_message, args=()).start()
+    multiprocessing.Process(target=schedule_message, args=()).start()
     bot.polling()
