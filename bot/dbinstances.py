@@ -6,10 +6,7 @@
       базе данных (документы), используемые ботом и их поля.
 """
 
-from mongoengine import connect, Document, IntField, StringField
-from config import HOST_NAME
-
-connect(host=HOST_NAME)
+from mongoengine import Document, IntField, StringField
 
 class Student(Document):
     """

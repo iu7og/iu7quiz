@@ -11,9 +11,12 @@ from multiprocessing import Process
 import telebot
 import schedule
 from dbinstances import Student
-from config import BOT_TOKEN, GROUPS
+from mongoengine import connect
+from config import *
 
 bot = telebot.TeleBot(BOT_TOKEN)
+connect(host=HOST_NAME)
+
 
 def schedule_message():
     """
