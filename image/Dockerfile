@@ -12,8 +12,8 @@ RUN apk add --update --no-cache --virtual .tmp-build-deps \
     snappy snappy-dev krb5-dev g++
 
 COPY image/requirements.txt /requirements.txt
-RUN python -m pip install -r /requirements.txt \
-    && rm -f requirements.txt
+COPY image/standard.rc /standard.rc
+RUN python -m pip install -r /requirements.txt
 
 RUN apk del .tmp-build-deps
 
