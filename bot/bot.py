@@ -12,19 +12,19 @@ import telebot
 import schedule
 from dbinstances import Student
 from mongoengine import connect
-from config import *
+from config import TOKEN, HOST, GROUPS
 
-bot = telebot.TeleBot(BOT_TOKEN)
-connect(host=HOST_NAME)
+bot = telebot.TeleBot(TOKEN)
+connect(host=HOST)
 
 
 def schedule_message():
     """
-        ...
+        Планировщик сообщений. 
     """
     def sending_messages():
         """
-            wrapper
+            Отправка сообщения. 
         """
 
         for student in Student.objects():
@@ -36,10 +36,10 @@ def schedule_message():
         time.sleep(1)
 
 
-@bot.message_handler(commands=['start'])
+@bot.message_handler(commands=["start"])
 def authorization(message):
     """
-        Уведомление студента о выборе группы, отправление сообщений с inline-кнопками.
+        Выбор учебной группы для авторизации.
     """
 
     if not Student.objects(user_id=message.from_user.id):
@@ -47,57 +47,63 @@ def authorization(message):
 
         for group_odd, group_even in zip(GROUPS[::2], GROUPS[1::2]):
             markup.add(
-                telebot.types.InlineKeyboardButton(text=group_odd, callback_data=group_odd),
-                telebot.types.InlineKeyboardButton(text=group_even, callback_data=group_even)
+                telebot.types.InlineKeyboardButton(
+                    text=group_odd, callback_data=group_odd),
+                telebot.types.InlineKeyboardButton(
+                    text=group_even, callback_data=group_even)
             )
 
-        bot.send_message(message.chat.id, "💬 Укажите свою группу: ", reply_markup=markup)
+        bot.send_message(
+            message.chat.id, "💬 Укажите свою учебную группу: ", reply_markup=markup)
     else:
-        bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
+        bot.send_message(
+            message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
-@bot.message_handler(commands=['unreg'])
-def delete(message):
-    """
-        debug
-    """
-    print(message)
-    print(Student.objects(user_id=message.from_user.id))
-    Student.objects(user_id=message.from_user.id).delete()
-    print(Student.objects(user_id=message.from_user.id))
+# @bot.message_handler(commands=["unreg"])
+# def delete(message):
+#     """
+#         Отладочная комманда.
+#     """
+#     print(message)
+#     print(Student.objects(user_id=message.from_user.id))
+#     Student.objects(user_id=message.from_user.id).delete()
+#     print(Student.objects(user_id=message.from_user.id))
 
 
-@bot.message_handler(commands=['leaderboard'])
+@bot.message_handler(commands=["leaderboard"])
 def show_leaderboard(message):
     """
-        Пока что просто заготовка под лидерборд
+        Вывод лидерборда среди учеников. 
     """
 
     if Student.objects(user_id=message.from_user.id):
-        msg = ''
+        msg = ""
         for student in Student.objects():
-            msg += "Логин: " + str(student.login) + "\nГруппа: " + student.group + "\n"
+            msg += "Логин: " + str(student.login) + \
+                "\nГруппа: " + student.group + "\n"
     else:
-        msg = '❌ Пожалуйста, завершите процес регистрации в системе (укажите свою группу).'
+        msg = "❌ Пожалуйста, укажите свою учебную группу."
 
     bot.send_message(message.chat.id, msg)
 
 
-@bot.message_handler(commands=['help'])
+@bot.message_handler(commands=["help"])
 def help_message(message):
     """
-        заготовка под хелпмеседж
+        Информация о боте. 
     """
 
-    bot.send_message(message.chat.id, "Тут будет какое то хелпмесседж...")
+    bot.send_message(
+        message.chat.id, "Тут напишем про себя и про преподавателей.")
 
 
-@bot.message_handler(func=lambda message: True)
-def echo_message(message):
-    """
-        хз че тут будет, если вообще будет
-    """
-    bot.reply_to(message, 'форкбота...')
+# @bot.message_handler(func=lambda message: True)
+# def echo_message(message):
+#     """
+#         Задать вопрос преподавателю во время лекции.
+#     """
+#     bot.reply_to(message, "📮 Ваш вопрос принят!")
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -115,7 +121,8 @@ def query_handler(call):
         )
 
         student.save()
-        bot.send_message(call.message.chat.id, '✅ Вы успешно зарегистрированы в системе.')
+        bot.send_message(call.message.chat.id,
+                         "✅ Вы успешно зарегистрированы в системе.")
 
 
 if __name__ == "__main__":

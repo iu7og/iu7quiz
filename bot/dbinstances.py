@@ -8,6 +8,7 @@
 
 from mongoengine import Document, IntField, StringField
 
+
 class Student(Document):
     """
         Класс описывающий студента в БД.
@@ -16,4 +17,4 @@ class Student(Document):
     user_id = IntField(required=True)
     login = StringField(required=True, max_length=200, default="None")
     group = StringField(required=True, max_length=200, default="None")
-    meta = {'allow_inheritance': True}
+    meta = {"allow_inheritance": True}
