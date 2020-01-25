@@ -28,7 +28,7 @@ codestyle:
   stage: test
   image: hackfeed/iu7quiz
   script:
-    - pylint --exit-zero $(find ./ -name \*.py) > pylintlog.txt
+    - pylint --exit-zero --rcfile=/standard.rc $(find ./ -name \*.py) > pylintlog.txt
     - SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylintlog.txt)
     - anybadge --label=pylint --value=$SCORE --file=pylint.svg -o 2=red 4=orange 8=yellow 10=green
     - cat pylintlog.txt
