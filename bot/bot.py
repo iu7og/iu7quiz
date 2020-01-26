@@ -53,7 +53,7 @@ def schedule_message():
         for student in Student.objects():
             bot.send_message(
                 student.user_id,
-                question.text + reduce(lambda x, y: x + y + "\n", question.answers, "\n\n"),
+                "❓ " + question.text + reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
                 reply_markup=create_markup(ANSWERS_BTNS)
             )
 
@@ -81,6 +81,7 @@ def authorization(message):
             message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
+
 """
 @bot.message_handler(commands=["unreg"])
 def delete(message):
@@ -105,6 +106,7 @@ def delete(message):
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
 """
+
 
 
 @bot.message_handler(commands=["leaderboard"])
