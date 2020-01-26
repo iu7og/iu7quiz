@@ -17,15 +17,20 @@ class Student(Document):
     user_id = IntField(required=True)
     login = StringField(required=True, max_length=200, default="None")
     group = StringField(required=True, max_length=200, default="None")
-    meta = {"allow_inheritance": True}
+    status = StringField(required=True, max_length=30)
+    #meta = {"allow_inheritance": True}
 
 
 class Question(Document):
     """
-        Класс, описывающий вопрос и варианты ответа для него.
+        Класс, описывающий вопрос, варианты ответа для него,
+        а так же статистику ответов для него.
     """
 
     day = IntField(required=True)
     text = StringField(required=True, max_length=300)
     answers = ListField(StringField(required=True, max_length=100))
     correct_answer = StringField(required=True, max_length=1)
+    best_time_to_answer = IntField(required=True)
+    total_answers = IntField(required=True)
+    first_to_answer = IntField(required=True)
