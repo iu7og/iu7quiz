@@ -22,6 +22,21 @@ bot = telebot.TeleBot(TOKEN)
 mongoengine.connect(host=HOST)
 
 
+def update_status(id, status):
+    """
+        Обновление текущего статуса у студента. Возможные статусы:
+
+        1. registration - студент проходит процесс регистрации (выбор группы).
+        2. standby - режим ожидания, у студента нет активных вопросов на данный момент.
+        3. confirmation - бот ждёт подтверждения готовности ответить на вопрос.
+        4. question - вопрос выслан, ожидания нажатия кнопки с ответом.
+    """
+
+    student = Student.objects(user_id=id)
+    student.status = status
+    student.save()
+
+
 def create_markup(buttons):
     """
         Создание клавиатуры из inline кнопок в два столбца.
@@ -51,6 +66,7 @@ def schedule_message():
 
         question = Question.objects(day=datetime.today().weekday())[0]
         for student in Student.objects():
+            update_status(student.user_id, "question")
             bot.send_message(
                 student.user_id,
                 "❓ " + question.text + reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
@@ -69,7 +85,14 @@ def authorization(message):
         Выбор учебной группы для авторизации.
     """
 
-    if not Student.objects(user_id=message.from_user.id):
+    if not Student.objects(user_id=message.chat.id):
+        student = Student(
+            user_id=message.chat.id,
+            login=message.chat.username,
+            status="registration"
+        )
+
+        student.save()
         bot.send_message(
             message.chat.id,
             "💬 Укажите свою учебную группу: ",
@@ -79,7 +102,6 @@ def authorization(message):
     else:
         bot.send_message(
             message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
-
 
 
 """
@@ -108,14 +130,15 @@ def delete(message):
 """
 
 
-
 @bot.message_handler(commands=["leaderboard"])
 def show_leaderboard(message):
     """
         Вывод лидерборда среди учеников.
     """
 
-    if Student.objects(user_id=message.from_user.id):
+    student = Student.objects(user_id=message.chat.id)[0]
+
+    if student.status == "standby":
         msg = ""
         for student in Student.objects():
             msg += "Логин: " + str(student.login) + \
@@ -132,8 +155,11 @@ def help_message(message):
         Информация о боте.
     """
 
-    bot.send_message(
-        message.chat.id, "Тут напишем про себя и про преподавателей.")
+    student = Student.objects(user_id=message.chat.id)[0]
+
+    if student.status == "standby":
+        bot.send_message(
+            message.chat.id, "Тут напишем про себя и про преподавателей.")
 
 
 # @bot.message_handler(func=lambda message: True)
@@ -151,14 +177,19 @@ def query_handler_reg(call):
     """
 
     bot.answer_callback_query(call.id)
-    if not Student.objects(user_id=call.message.chat.id):
+    student = Student.objects(user_id=call.message.chat.id)[0]
+
+    if student.status == "registration":
+        student.group = call.data
+        student.status = "standby"
+        student.save()
+
         student = Student(
             user_id=call.message.chat.id,
             login=call.message.chat.username,
             group=call.data
         )
 
-        student.save()
         bot.send_message(call.message.chat.id,
                          "✅ Вы успешно зарегистрированы в системе.")
 
@@ -170,11 +201,18 @@ def query_handler_questions(call):
     """
 
     bot.answer_callback_query(call.id)
-    question = Question.objects(day=datetime.today().weekday())[0]
-    if call.data == question.correct_answer:
-        bot.send_message(call.message.chat.id, "Правильный ответ")
-    else:
-        bot.send_message(call.message.chat.id, "Неверный ответ")
+    student = Student.objects(user_id=call.message.chat.id)[0]
+
+    if student.status == "question":
+        question = Question.objects(day=datetime.today().weekday())[0]
+        update_status(call.message.chat.id, "standby")
+
+        if call.data == question.correct_answer:
+            bot.send_message(
+                call.message.chat.id, "✔️ Верно! Ваш ответ засчитан.")
+        else:
+            bot.send_message(
+                call.message.chat.id, "❌ К сожалению, ваш ответ не правильный.")
 
 
 if __name__ == "__main__":
