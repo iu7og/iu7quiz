@@ -42,7 +42,7 @@ def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answe
 
 def answer_summary(student, question, answer_time=-1):
     """
-        Расчет баллов для студента student, при ответе на вопрос question,
+        Расчет баллов для студента student, при ответе на вопрос question.
     """
 
     q_complexity = 1 - (question.first_to_answer / question.total_answers),
