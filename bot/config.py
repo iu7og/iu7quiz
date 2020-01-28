@@ -5,16 +5,20 @@
       Настройки и константы для бота.
 """
 
-import os
+import json
+
+# Файл с secret-данными.
+with open("credentials.json", "r") as credentials:
+    data = json.load(credentials)
 
 # Конфигурация серверной части бота.
-TOKEN = os.environ['TOKEN']
+TOKEN = data["TOKEN"]
 
 # Конфигурация MongoDB.
-DB_NAME = os.environ['DB_NAME']
-DB_USER = os.environ['DB_USER']
-DB_PASS = os.environ['DB_PASS']
-HOST = f"mongodb://{DB_USER}:{DB_PASS}@127.0.0.1:27017/{DB_NAME}"
+DB_NAME = data["DB_NAME"]
+DB_USER = data["DB_USER"]
+DB_PASS = data["DB_PASS"]
+HOST = data["HOST"]
 
 # Конфигурация клиентской части бота.
 GROUPS_BTNS = ["ИУ7-21Б", "ИУ7-22Б", "ИУ7-23Б", "ИУ7-24Б", "ИУ7-25Б", "ИУ7-26Б"]
