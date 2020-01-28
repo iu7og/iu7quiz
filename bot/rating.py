@@ -13,7 +13,7 @@ import config
 from dbinstances import Student, Question
 
 
-def waiting_func(time_in_hours):
+def waiting_score(time_in_hours):
     """
         Расчет доли баллов за быстроту реакции.
     """
@@ -21,7 +21,7 @@ def waiting_func(time_in_hours):
     return exp(-config.HALF_WAITING_FACTOR * time_in_hours)
 
 
-def answr_func(time_in_secs, good_time):
+def answer_score(time_in_secs, good_time):
     """
         Расчет доли баллов за быстроту ответа.
     """
