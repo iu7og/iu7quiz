@@ -34,3 +34,4 @@ class Question(Document):
     best_time_to_answer = IntField(required=False)
     total_answers = IntField(required=False)
     first_to_answer = IntField(required=False)
+    
