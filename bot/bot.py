@@ -28,7 +28,7 @@ def update_status(user_id, status):
 
         1. registration - студент проходит процесс регистрации (выбор группы).
         2. standby - режим ожидания, у студента нет активных вопросов на данный момент.
-        3. confirmation - бот ждёт подтверждения готовности ответить на вопрос.
+        3. is_ready - бот ждёт подтверждения готовности ответить на вопрос.
         4. question - вопрос выслан, ожидания нажатия кнопки с ответом.
     """
 
@@ -66,7 +66,7 @@ def schedule_message():
 
         for student in Student.objects():
             if student.status == "standby":
-                update_status(student.user_id, "confirmation")
+                update_status(student.user_id, "is_ready")
 
                 markup = telebot.types.InlineKeyboardMarkup()
                 markup.add(
@@ -75,7 +75,7 @@ def schedule_message():
                 bot.send_message(student.user_id, "📝")
                 bot.send_message(
                     student.user_id,
-                    "Привет, готовы ли вы сейчас ответить по прошедшей лекции? ",
+                    "Привет, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
                     reply_markup=markup
                 )
 
@@ -186,12 +186,6 @@ def query_handler_reg(call):
         student.status = "standby"
         student.save()
 
-        student = Student(
-            user_id=call.message.chat.id,
-            login=call.message.chat.username,
-            group=call.data
-        )
-
         bot.send_message(call.message.chat.id,
                          "✅ Вы успешно зарегистрированы в системе.")
 
@@ -205,11 +199,12 @@ def query_handler_ready(call):
 
     bot.answer_callback_query(call.id)
     student = Student.objects(user_id=call.message.chat.id).first()
-    questions = Question.objects(day__mod=(datetime.today().weekday(), 0))
-    question = questions[len(questions) - 1]
 
-    if student.status == "confirmation":
+    if student.status == "is_ready":
+        questions = Question.objects(day__mod=(7, datetime.today().weekday()))
+        question = questions[len(questions) - 1]
         update_status(call.message.chat.id, "question")
+
         bot.send_message(
             call.message.chat.id,
             "❓ " + question.text + \
@@ -228,7 +223,7 @@ def query_handler_questions(call):
     student = Student.objects(user_id=call.message.chat.id).first()
 
     if student.status == "question":
-        questions = Question.objects(day__mod=(datetime.today().weekday(), 0))
+        questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
         update_status(call.message.chat.id, "standby")
 
@@ -237,7 +232,7 @@ def query_handler_questions(call):
                 call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             bot.send_message(
-                call.message.chat.id, "❌ К сожалению, ваш ответ неправильный.")
+                call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
 
 
 if __name__ == "__main__":
