@@ -40,16 +40,16 @@ def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answe
     return 100 / attempt * answer_score * complexity
 
 
-def answer_summary(student, question, answer_time=-1):
+def answer_summary(student, question, answer_number=-1):
     """
         Расчет баллов для студента student, при ответе на вопрос question,
     """
 
     q_complexity = 1 - (question.first_to_answer / question.total_answers),
-    waiting_time = student.data[question.day]['right'][answer_time][0]
-    time_of_answer = student.data[question.day]['right'][answer_time][1]
-    attempt = answer_time + 1 + student.data["wrong"] if \
-    answer_time != -1 else len(student.data['right']) + student.data['wrong']
+    waiting_time = student.data[question.day]['right'][answer_number][0]
+    time_of_answer = student.data[question.day]['right'][answer_number][1]
+    attempt = answer_number + 1 + student.data["wrong"] if \
+    answer_number != -1 else len(student.data['right']) + student.data['wrong']
     good_answer_time = question.best_time_to_answer
 
     return calculate_score(q_complexity, waiting_time, time_of_answer, attempt, good_answer_time)
