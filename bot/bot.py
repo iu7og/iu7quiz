@@ -16,7 +16,7 @@ import schedule
 import mongoengine
 
 from dbinstances import Student, Question
-from config import TOKEN, HOST, GROUPS_BTNS, ANSWERS_BTNS
+from config import TOKEN, HOST, GROUPS_BTNS, ANSWERS_BTNS, READY_BTN
 
 bot = telebot.TeleBot(TOKEN)
 mongoengine.connect(host=HOST)
@@ -32,7 +32,7 @@ def update_status(id, status):
         4. question - вопрос выслан, ожидания нажатия кнопки с ответом.
     """
 
-    student = Student.objects(user_id=id)
+    student = Student.objects(user_id=id)[0]
     student.status = status
     student.save()
 
@@ -64,14 +64,24 @@ def schedule_message():
             Отправка сообщения.
         """
 
-        question = Question.objects(day=datetime.today().weekday())[0]
+        #question = Question.objects(day=datetime.today().weekday())[0]
         for student in Student.objects():
-            update_status(student.user_id, "question")
-            bot.send_message(
-                student.user_id,
-                "❓ " + question.text + reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
-                reply_markup=create_markup(ANSWERS_BTNS)
-            )
+            if student.status == "standby":
+                print(student.user_id)
+                update_status(student.user_id, "confirmation")
+                bot.send_message(student.user_id, "📝")
+                    #"❓ " + question.text + reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
+                    #reply_markup=create_markup([READY_BTN])
+
+                markup = telebot.types.InlineKeyboardMarkup()
+                markup.add(
+                    telebot.types.InlineKeyboardButton(text=READY_BTN, callback_data=READY_BTN))
+
+                bot.send_message(
+                    student.user_id,
+                    "Привет, готовы ли вы сейчас ответить по прошедшей лекции? ",
+                    reply_markup=markup
+                )
 
     schedule.every(1).minutes.do(sending_messages)
     while True:
@@ -104,21 +114,22 @@ def authorization(message):
             message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
-"""
+
 @bot.message_handler(commands=["unreg"])
 def delete(message):
     #Отладочная комманда.
 
     Question.objects().delete()
+    Student.objects().delete()
     question = Question(
-        day=6,
+        day=1,
         text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
         answers=
             ["A. Кострицкий Антон Александрович",
             "B. Кострицкий Александр Сергеевич",
             "C. Кострицкий Сергей Владимирович",
             "D. Кострицкий Игорь Владимирович"],
-        correct_answer="B"
+        correct_answer="C"
     )
     print(question.answers)
     question.save()
@@ -127,7 +138,7 @@ def delete(message):
     print(Student.objects(user_id=message.from_user.id))
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
-"""
+
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -136,17 +147,15 @@ def show_leaderboard(message):
         Вывод лидерборда среди учеников.
     """
 
-    student = Student.objects(user_id=message.chat.id)[0]
+    student = Student.objects(user_id=message.from_user.id)[0]
 
     if student.status == "standby":
         msg = ""
         for student in Student.objects():
             msg += "Логин: " + str(student.login) + \
                 "\nГруппа: " + student.group + "\n"
-    else:
-        msg = "❌ Пожалуйста, укажите свою учебную группу."
 
-    bot.send_message(message.chat.id, msg)
+        bot.send_message(message.chat.id, msg)
 
 
 @bot.message_handler(commands=["help"])
@@ -155,7 +164,7 @@ def help_message(message):
         Информация о боте.
     """
 
-    student = Student.objects(user_id=message.chat.id)[0]
+    student = Student.objects(user_id=message.from_user.id)[0]
 
     if student.status == "standby":
         bot.send_message(
@@ -194,6 +203,25 @@ def query_handler_reg(call):
                          "✅ Вы успешно зарегистрированы в системе.")
 
 
+@bot.callback_query_handler(lambda call: call.data == READY_BTN)
+def query_handler_questions(call):
+    """
+
+    """
+
+    bot.answer_callback_query(call.id)
+    student = Student.objects(user_id=call.message.chat.id)[0]
+    question = Question.objects(day=datetime.today().weekday())[0]
+
+    if student.status == "confirmation":
+        update_status(call.message.chat.id, "question")
+        bot.send_message(
+            call.message.chat.id,
+            "❓ " + question.text + reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
+            reply_markup=create_markup(ANSWERS_BTNS)
+        )
+
+
 @bot.callback_query_handler(lambda call: call.data in ANSWERS_BTNS)
 def query_handler_questions(call):
     """
@@ -209,7 +237,7 @@ def query_handler_questions(call):
 
         if call.data == question.correct_answer:
             bot.send_message(
-                call.message.chat.id, "✔️ Верно! Ваш ответ засчитан.")
+                call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             bot.send_message(
                 call.message.chat.id, "❌ К сожалению, ваш ответ не правильный.")
