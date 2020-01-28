@@ -21,7 +21,7 @@ def waiting_score(time_in_hours):
     return exp(-config.HALF_WAITING_FACTOR * time_in_hours)
 
 
-def answer_score(time_in_secs, good_time):
+def answer_speed_score(time_in_secs, good_time):
     """
         Расчет доли баллов за быстроту ответа.
     """
@@ -34,8 +34,8 @@ def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answe
         Формула расчета суммарного кол-ва баллов за ответ (учитывающая все характеристики).
     """
 
-    answer_score = (config.WAITING_FACTOR * waiting_func(waiting_time) +
-                    config.ANSWER_TIME_FACTOR * answr_func(answer_time, good_answer_time))
+    answer_score = (config.WAITING_FACTOR * waiting_score(waiting_time) +
+                    config.ANSWER_TIME_FACTOR * answer_speed_score(answer_time, good_answer_time))
     complexity = (1 - config.COMPLEXITY_FACTOR * q_complexity)
     return 100 / attempt * answer_score * complexity
 
