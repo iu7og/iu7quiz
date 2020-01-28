@@ -9,6 +9,8 @@
 from datetime import datetime
 from functools import reduce
 
+from random import randint
+
 import time
 import multiprocessing
 import telebot
@@ -16,7 +18,7 @@ import schedule
 import mongoengine
 
 from dbinstances import Student, Question
-from config import TOKEN, HOST, GROUPS_BTNS, ANSWERS_BTNS, READY_BTN
+from config import TOKEN, HOST, GROUPS_BTNS, ANSWERS_BTNS, READY_BTN, SCROLL_BTNS
 
 bot = telebot.TeleBot(TOKEN)
 mongoengine.connect(host=HOST)
@@ -110,7 +112,7 @@ def authorization(message):
             message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
-"""
+
 @bot.message_handler(commands=["unreg"])
 def delete(message):
     #Отладочная комманда.
@@ -134,7 +136,7 @@ def delete(message):
     print(Student.objects(user_id=message.from_user.id))
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
-"""
+
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -148,7 +150,7 @@ def show_leaderboard(message):
     if student.status == "standby":
         msg = reduce(lambda x, y: x + "Логин: @" + str(y.login) + \
             "\nГруппа: " + y.group + "\n", Student.objects(), "")
-        bot.send_message(message.chat.id, msg)
+        bot.send_message(message.chat.id, msg, reply_markup=create_markup(SCROLL_BTNS))
 
 
 @bot.message_handler(commands=["help"])
@@ -238,6 +240,27 @@ def query_handler_questions(call):
         else:
             bot.send_message(
                 call.message.chat.id, "❌ К сожалению, ваш ответ неправильный.")
+
+
+@bot.callback_query_handler(lambda call: call.data in SCROLL_BTNS)
+def query_handler_scroll(call):
+    """
+        Обновление сообщения с лидербордом при нажатии кнопок назад / вперёд.
+    """
+
+    bot.answer_callback_query(call.id)
+
+    if call.data == "◀️":
+        updated_msg = "Назад..." + str(randint(1, 9999999999))
+    else:
+        updated_msg = "Вперёд.." + str(randint(1, 99999999999))
+
+    bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        text=updated_msg,
+        message_id=call.message.message_id,
+        reply_markup=create_markup(SCROLL_BTNS)
+    )
 
 
 if __name__ == "__main__":
