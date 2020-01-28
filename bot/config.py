@@ -28,9 +28,9 @@ ANSWERS_BTNS = ['A', 'B', 'C', 'D']
 # Конфигурация рейтинговой системы.
 # Коэффициенты главной формулы.
 WAITING_FACTOR = 0.35
-ANSWR_TIME_FACTOR = 1 - WAITING_FACTOR
+ANSWER_TIME_FACTOR = 1 - WAITING_FACTOR
 ERR_DCRMNT_FACTOR = 0.2
-CMPLXITY_FACTOR = 0.2
+COMPLEXITY_FACTOR = 0.2
 
 # Коэффициент потери баллов за ожидание (кол-во часов,
 # когда из-за ожидания теряется 50% баллов за ожидание)
