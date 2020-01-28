@@ -133,3 +133,6 @@ data/db/
 
 # Admin utils
 utils/
+
+# Credentials
+bot/credentials.json
