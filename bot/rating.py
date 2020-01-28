@@ -45,7 +45,7 @@ def answer_summary(student, question, answer_time=-1):
         Расчет баллов для студента student, при ответе на вопрос question,
     """
 
-    q_complexity = 1 - question.first_to_answer / question.total_answers,
+    q_complexity = 1 - (question.first_to_answer / question.total_answers),
     waiting_time = student.data[question.day]['right'][answer_time][0]
     time_of_answer = student.data[question.day]['right'][answer_time][1]
     attempt = answer_time + 1 + student.data["wrong"] if \
