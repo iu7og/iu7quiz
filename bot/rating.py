@@ -4,7 +4,7 @@
 
       Модуль содержит набор функций для расчета результата ответа студента по времени реагирования,
       времени ответа, сложности вопроса, номера попытки ответа
-      (а так же функция расчета общего рейтинга всех студентов)
+      (а так же функция расчета общего рейтинга всех студентов).
 """
 
 
@@ -42,7 +42,7 @@ def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answe
 
 def answer_summary(student, question, answer_number=-1):
     """
-        Расчет баллов для студента student, при ответе на вопрос question,
+        Расчет баллов для студента student, при ответе на вопрос question.
     """
 
     q_complexity = 1 - (question.first_to_answer / question.total_answers),
