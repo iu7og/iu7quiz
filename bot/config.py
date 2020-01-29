@@ -6,20 +6,17 @@
 """
 
 from math import log
-import json
-
-# Файл с secret-данными.
-with open("credentials.json", "r") as credentials:
-    data = json.load(credentials)
+import os
 
 # Конфигурация серверной части бота.
-TOKEN = data["TOKEN"]
+TOKEN = os.environ['TOKEN']
 
 # Конфигурация MongoDB.
-DB_NAME = data["DB_NAME"]
-DB_USER = data["DB_USER"]
-DB_PASS = data["DB_PASS"]
-HOST = data["HOST"]
+DB_NAME = os.environ['DB_NAME']
+DB_USER = os.environ['DB_USER']
+DB_PASS = os.environ['DB_PASS']
+DB_HOST = os.environ['DB_HOST']
+HOST = f"mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:27017/{DB_NAME}"
 
 # Конфигурация клиентской части бота.
 GROUPS_BTNS = ["ИУ7-21Б", "ИУ7-22Б", "ИУ7-23Б", "ИУ7-24Б", "ИУ7-25Б", "ИУ7-26Б"]
