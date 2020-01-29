@@ -44,17 +44,12 @@ def create_leaderboard_page(btn, prev_page=None):
             new_page_start = int(split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
 
     page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
-    places_delimiter = "  " if new_page_start == 0 else ""
     page_text = ""
 
     for i in range(len(page_list)):
-        page_text += places_delimiter + str(int(i) + new_page_start + 1) + \
-            ". @" + page_list[i][0] + ". Рейтинг: " + str(page_list[i][1]) + "\n"
-
-    if new_page_start == 0:
-        page_text = page_text.replace("  1. ", cfg.LB_MEDALS[0], 1)
-        page_text = page_text.replace("  2. ", cfg.LB_MEDALS[1], 1)
-        page_text = page_text.replace("  3. ", cfg.LB_MEDALS[2], 1)
+        curr_index = i + 1 + new_page_start
+        page_text += cfg.LB_MEDALS.setdefault(curr_index, str(curr_index) + ".") + \
+            " @" + page_list[i][0] + ". Рейтинг: " + str(page_list[i][1]) + "\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
