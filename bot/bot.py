@@ -9,6 +9,7 @@
 from datetime import datetime
 from functools import reduce
 
+import json
 import time
 import multiprocessing
 import telebot
@@ -67,6 +68,8 @@ def schedule_message():
         for student in Student.objects():
             if student.status == "standby":
                 update_status(student.user_id, "is_ready")
+
+                student.qtime_start = int(time.time())
 
                 markup = telebot.types.InlineKeyboardMarkup()
                 markup.add(
@@ -203,6 +206,25 @@ def query_handler_ready(call):
     if student.status == "is_ready":
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
+
+        day = (len(questions) - 1) * 7 + datetime.today().weekday()
+
+        datastore = json.loads(student.data)
+        while (len(datastore) <= day):
+            datastore.append(dict())
+
+        question_object = datastore[day]
+
+        if "wrong" not in question_object.keys() or "right" not in question_object.keys():
+            question_object["wrong"] = 0
+            question_object["right"] = [[(int(time.time()) - student.qtime_start) / 3600, 0]]
+
+        else:
+            question_object["right"][-1][0] = (int(time.time()) - student.qtime_start) / 3600
+
+        student.qtime_start = call.message.chat.time
+        student.data = json.dumps(datastore)
+
         update_status(call.message.chat.id, "question")
 
         bot.send_message(
@@ -217,6 +239,7 @@ def query_handler_ready(call):
 def query_handler_questions(call):
     """
         Обработка нажатия inline-кнопок с выбором ответа студентом.
+        Обновление статистики после ответа на вопрос.
     """
 
     bot.answer_callback_query(call.id)
@@ -227,12 +250,27 @@ def query_handler_questions(call):
         question = questions[len(questions) - 1]
         update_status(call.message.chat.id, "standby")
 
+        day = (len(questions) - 1) * 7 + datetime.today().weekday()
+        datastore = json.loads(student.data)
+        question_object = datastore[day]
+
         if call.data == question.correct_answer:
+            if (len(question_object["right"]) == 1 and question_object["wrong"] == 0):
+                question.first_to_answer += 1
+                question.answers += 1
+            question_object["right"][-1][1] = call.message.chat.time - student.qtime_start
+            student.qtime_start = 0
+            question_object.append([0, 0])
             bot.send_message(
                 call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
+            if (len(question_object["right"]) == 1 and question_object["wrong"] == 0):
+                question.answers += 1
+            question_object["wrong"] += 1
             bot.send_message(
                 call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
+
+        student.data = json.dumps(datastore)
 
 
 if __name__ == "__main__":
