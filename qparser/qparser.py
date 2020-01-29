@@ -11,13 +11,15 @@ import mongoengine
 from bot.config import DB_NAME, DB_USER, DB_PASS
 from bot.dbinstances import Question
 
+
+WEEK = 7
 RECORD_SIZE = 6
 
 DB_IP = os.environ['DB_IP']
 HOST = f"mongodb://{DB_USER}:{DB_PASS}@{DB_IP}:27017/{DB_NAME}"
 
 
-def parse_questions():
+def parse_to_mongo():
     """
         Парсинг вопросов из файла.
     """
@@ -27,19 +29,18 @@ def parse_questions():
     questions = Question.objects.count()
 
     with open("./qparser/questions.txt") as file:
-        data = file.read().splitlines()
-
-    for i in range(0, len(data), RECORD_SIZE):
-        question = Question(
-            day=questions + (i // RECORD_SIZE) + 1,
-            text=data[i % RECORD_SIZE],
-            answers=[data[j % RECORD_SIZE] for j in range(1, RECORD_SIZE - 1)],
-            correct_answer=data[(i + RECORD_SIZE - 1) % RECORD_SIZE]
-        )
-        question.save()
+        for i in range(WEEK):
+            data = [next(file)[:-1] for _ in range(RECORD_SIZE)]
+            question = Question(
+                day=questions + i,
+                text=data[0],
+                answers=[data[j] for j in range(1, 5)],
+                correct_answer=data[5]
+            )
+            question.save()
 
     mongoengine.disconnect()
 
 
 if __name__ == "__main__":
-    parse_questions()
+    parse_to_mongo()
