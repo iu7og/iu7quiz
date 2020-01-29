@@ -8,7 +8,6 @@
 
 from datetime import datetime
 from functools import reduce
-
 from random import randint
 
 import time
@@ -17,11 +16,49 @@ import telebot
 import schedule
 import mongoengine
 
+import config as cfg
 from dbinstances import Student, Question
-from config import TOKEN, HOST, GROUPS_BTNS, ANSWERS_BTNS, READY_BTN, SCROLL_BTNS
 
-bot = telebot.TeleBot(TOKEN)
-mongoengine.connect(host=HOST)
+bot = telebot.TeleBot(cfg.TOKEN)
+mongoengine.connect(host=cfg.HOST)
+
+def create_leaderboard_page(btn, prev_page=None):
+    """
+        Создание одной страницы лидерборда.
+    """
+
+    # Позже заменить на вызов get_rating()
+    students_ = Student.objects()
+    students = []
+    for student in students_:
+        students.append((student.login, randint(1, 9999)))
+    students = sorted(students, key=lambda x: x[1])
+
+    if prev_page is None:
+        new_page_start = 0
+    else:
+        split_page = prev_page.split("\n")
+        if btn == "▶️":
+            new_page_start = int(split_page[-1][:split_page[-1].find(".")])
+        else:
+            new_page_start = int(split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
+
+    page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
+    places_delimiter = "  " if new_page_start == 0 else ""
+    page_text = ""
+
+    for i in range(len(page_list)):
+        page_text += places_delimiter + str(int(i) + new_page_start + 1) + \
+            ". @" + page_list[i][0] + ". Рейтинг: " + str(page_list[i][1]) + "\n"
+
+    if new_page_start == 0:
+        page_text = page_text.replace("  1. ", cfg.LB_MEDALS[0], 1)
+        page_text = page_text.replace("  2. ", cfg.LB_MEDALS[1], 1)
+        page_text = page_text.replace("  3. ", cfg.LB_MEDALS[2], 1)
+
+    is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
+
+    return page_text, is_border
 
 
 def update_status(user_id, status):
@@ -57,31 +94,33 @@ def create_markup(btns):
     return markup
 
 
+def send_confirmation():
+    """
+        Отправка сообщения с вопросом о подтверждении готовности отвечать на вопрос.
+    """
+
+    for student in Student.objects():
+        if student.status == "standby":
+            update_status(student.user_id, "is_ready")
+
+            markup = telebot.types.InlineKeyboardMarkup()
+            markup.add(
+                telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN))
+
+            bot.send_message(student.user_id, "📝")
+            bot.send_message(
+                student.user_id,
+                "Привет, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+                reply_markup=markup
+            )
+
+
 def schedule_message():
     """
         Планировщик сообщений.
     """
-    def send_confirmation():
-        """
-            Отправка сообщения с вопросом о подтверждении готовности отвечать на вопрос.
-        """
 
-        for student in Student.objects():
-            if student.status == "standby":
-                update_status(student.user_id, "is_ready")
-
-                markup = telebot.types.InlineKeyboardMarkup()
-                markup.add(
-                    telebot.types.InlineKeyboardButton(text=READY_BTN, callback_data=READY_BTN))
-
-                bot.send_message(student.user_id, "📝")
-                bot.send_message(
-                    student.user_id,
-                    "Привет, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
-                    reply_markup=markup
-                )
-
-    schedule.every(1).minutes.do(send_confirmation)
+    schedule.every(100).minutes.do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -104,7 +143,7 @@ def authorization(message):
         bot.send_message(
             message.chat.id,
             "💬 Укажите свою учебную группу: ",
-            reply_markup=create_markup(GROUPS_BTNS)
+            reply_markup=create_markup(cfg.GROUPS_BTNS)
         )
 
     else:
@@ -112,7 +151,7 @@ def authorization(message):
             message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
-
+"""
 @bot.message_handler(commands=["unreg"])
 def delete(message):
     #Отладочная комманда.
@@ -120,7 +159,7 @@ def delete(message):
     Question.objects().delete()
     Student.objects().delete()
     question = Question(
-        day=1,
+        day=2,
         text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
         answers=
             ["A. Кострицкий Антон Александрович",
@@ -137,6 +176,16 @@ def delete(message):
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
 
+    for i in range(103):
+        student = Student(
+            user_id=randint(1, 999999),
+            login="user"+str(randint(1,999)),
+            group=str(randint(1,9999999999)),
+            status="standby"
+        )
+
+        student.save()
+"""
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -148,9 +197,19 @@ def show_leaderboard(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        msg = reduce(lambda x, y: x + "Логин: @" + str(y.login) + \
-            "\nГруппа: " + y.group + "\n", Student.objects(), "")
-        bot.send_message(message.chat.id, msg, reply_markup=create_markup(SCROLL_BTNS))
+        page = create_leaderboard_page(cfg.SCROLL_BTNS[1])
+
+        if Student.objects().count() > cfg.LB_PAGE_SIZE:
+            markup = telebot.types.InlineKeyboardMarkup()
+            markup.add(
+                telebot.types.InlineKeyboardButton(
+                    text=cfg.SCROLL_BTNS[1],
+                    callback_data=cfg.SCROLL_BTNS[1])
+                )
+
+            bot.send_message(message.chat.id, page, reply_markup=markup)
+        else:
+            bot.send_message(message.chat.id, page)
 
 
 @bot.message_handler(commands=["help"])
@@ -174,7 +233,7 @@ def help_message(message):
 #     bot.reply_to(message, "📮 Ваш вопрос принят!")
 
 
-@bot.callback_query_handler(lambda call: call.data in GROUPS_BTNS)
+@bot.callback_query_handler(lambda call: call.data in cfg.GROUPS_BTNS)
 def query_handler_reg(call):
     """
         Обработка нажатия inline-кнопок с выбором группы студентом.
@@ -192,7 +251,7 @@ def query_handler_reg(call):
                          "✅ Вы успешно зарегистрированы в системе.")
 
 
-@bot.callback_query_handler(lambda call: call.data == READY_BTN)
+@bot.callback_query_handler(lambda call: call.data == cfg.READY_BTN)
 def query_handler_ready(call):
     """
         Высылание вопроса с inline-кнопками тем,
@@ -211,11 +270,11 @@ def query_handler_ready(call):
             call.message.chat.id,
             "❓ " + question.text + \
                 reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
-            reply_markup=create_markup(ANSWERS_BTNS)
+            reply_markup=create_markup(cfg.ANSWERS_BTNS)
         )
 
 
-@bot.callback_query_handler(lambda call: call.data in ANSWERS_BTNS)
+@bot.callback_query_handler(lambda call: call.data in cfg.ANSWERS_BTNS)
 def query_handler_questions(call):
     """
         Обработка нажатия inline-кнопок с выбором ответа студентом.
@@ -237,24 +296,28 @@ def query_handler_questions(call):
                 call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
 
 
-@bot.callback_query_handler(lambda call: call.data in SCROLL_BTNS)
+@bot.callback_query_handler(lambda call: call.data in cfg.SCROLL_BTNS)
 def query_handler_scroll(call):
     """
         Обновление сообщения с лидербордом при нажатии кнопок назад / вперёд.
     """
 
     bot.answer_callback_query(call.id)
+    new_page, is_border = create_leaderboard_page(call.data, call.message.text)
 
-    if call.data == "◀️":
-        updated_msg = "Назад..." + str(randint(1, 9999999999))
+    if is_border:
+        markup = telebot.types.InlineKeyboardMarkup()
+        new_btn = "◀️" if call.data == "▶️" else "▶️"
+        markup.add(
+            telebot.types.InlineKeyboardButton(text=new_btn, callback_data=new_btn))
     else:
-        updated_msg = "Вперёд.." + str(randint(1, 99999999999))
+        markup = create_markup(cfg.SCROLL_BTNS)
 
     bot.edit_message_text(
         chat_id=call.message.chat.id,
-        text=updated_msg,
+        text=new_page,
         message_id=call.message.message_id,
-        reply_markup=create_markup(SCROLL_BTNS)
+        reply_markup=markup
     )
 
 
