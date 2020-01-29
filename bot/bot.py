@@ -199,7 +199,7 @@ def show_leaderboard(message):
     if student.status == "standby":
         page = create_leaderboard_page(cfg.SCROLL_BTNS[1])
 
-        if Student.objects().count() > cfg.LB_PAGE_SIZE:
+        if Student.objects.count() > cfg.LB_PAGE_SIZE:
             markup = telebot.types.InlineKeyboardMarkup()
             markup.add(
                 telebot.types.InlineKeyboardButton(
