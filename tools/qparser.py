@@ -26,13 +26,13 @@ def parse_to_mongo():
 
     mongoengine.connect(host=HOST)
 
-    questions = Question.objects.count()
+    qcount = Question.objects.count()
 
     with open("./data/questions.txt") as file:
         for i in range(WEEK):
             data = [next(file)[:-1] for _ in range(RECORD_SIZE)]
             question = Question(
-                day=questions + i,
+                day=qcount + i,
                 text=data[0],
                 answers=[data[j] for j in range(1, 5)],
                 correct_answer=data[5]
