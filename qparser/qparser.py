@@ -24,19 +24,19 @@ def parse_questions():
 
     mongoengine.connect(host=HOST)
 
-    dbquestions = len(Question.objects)
+    questions = Question.objects.count()
 
     with open("./qparser/questions.txt") as file:
         data = file.read().splitlines()
 
     for i in range(0, len(data), RECORD_SIZE):
-        post = Question(
-            day=dbquestions + (i // RECORD_SIZE) + 1,
+        question = Question(
+            day=questions + (i // RECORD_SIZE) + 1,
             text=data[i % RECORD_SIZE],
             answers=[data[j % RECORD_SIZE] for j in range(1, RECORD_SIZE - 1)],
             correct_answer=data[(i + RECORD_SIZE - 1) % RECORD_SIZE]
         )
-        post.save()
+        question.save()
 
     mongoengine.disconnect()
 
