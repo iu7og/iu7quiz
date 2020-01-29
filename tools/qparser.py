@@ -28,7 +28,7 @@ def parse_to_mongo():
 
     questions = Question.objects.count()
 
-    with open("./qparser/questions.txt") as file:
+    with open("./data/questions.txt") as file:
         for i in range(WEEK):
             data = [next(file)[:-1] for _ in range(RECORD_SIZE)]
             question = Question(

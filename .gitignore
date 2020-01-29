@@ -129,7 +129,6 @@ dmypy.json
 *.hi
 
 # MongoDB files
-data/db/
 init-mongo.js
 
 # Admin utils
