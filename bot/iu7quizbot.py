@@ -16,11 +16,12 @@ import telebot
 import schedule
 import mongoengine
 
-import config as cfg
-from dbinstances import Student, Question
+import bot.config as cfg
+from bot.dbinstances import Student, Question
 
 bot = telebot.TeleBot(cfg.TOKEN)
 mongoengine.connect(host=cfg.HOST)
+
 
 def create_leaderboard_page(btn, prev_page=None):
     """
@@ -41,7 +42,8 @@ def create_leaderboard_page(btn, prev_page=None):
         if btn == "▶️":
             new_page_start = int(split_page[-1][:split_page[-1].find(".")])
         else:
-            new_page_start = int(split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
+            new_page_start = int(
+                split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
 
     page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
     page_text = ""
@@ -49,7 +51,8 @@ def create_leaderboard_page(btn, prev_page=None):
     for i in range(len(page_list)):
         curr_index = i + 1 + new_page_start
         page_text += cfg.LB_MEDALS.setdefault(curr_index, str(curr_index) + ".") + \
-            " @" + page_list[i][0] + ". Рейтинг: " + str(page_list[i][1]) + "\n"
+            " @" + page_list[i][0] + ". Рейтинг: " + \
+            str(page_list[i][1]) + "\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
@@ -200,7 +203,7 @@ def show_leaderboard(message):
                 telebot.types.InlineKeyboardButton(
                     text=cfg.SCROLL_BTNS[1],
                     callback_data=cfg.SCROLL_BTNS[1])
-                )
+            )
 
             bot.send_message(message.chat.id, page, reply_markup=markup)
         else:
@@ -263,8 +266,8 @@ def query_handler_ready(call):
 
         bot.send_message(
             call.message.chat.id,
-            "❓ " + question.text + \
-                reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
+            "❓ " + question.text +
+            reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
             reply_markup=create_markup(cfg.ANSWERS_BTNS)
         )
 
