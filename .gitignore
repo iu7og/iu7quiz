@@ -130,9 +130,13 @@ dmypy.json
 
 # MongoDB files
 data/db/
+init-mongo.js
 
 # Admin utils
 utils/
 
 # Credentials
-bot/credentials.json
+credentials.env
+
+# .dockerignore
+.dockerignore
