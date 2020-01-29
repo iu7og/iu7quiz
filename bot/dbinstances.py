@@ -18,7 +18,6 @@ class Student(Document):
     login = StringField(required=True, max_length=200, default="None")
     group = StringField(required=True, max_length=200, default="None")
     status = StringField(required=True, max_length=30)
-    #meta = {"allow_inheritance": True}
 
 
 class Question(Document):
@@ -34,4 +33,3 @@ class Question(Document):
     best_time_to_answer = IntField(required=False)
     total_answers = IntField(required=False)
     first_to_answer = IntField(required=False)
-    

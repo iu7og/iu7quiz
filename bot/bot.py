@@ -37,14 +37,14 @@ def update_status(user_id, status):
     student.save()
 
 
-def create_markup(buttons):
+def create_markup(btns):
     """
         Создание клавиатуры из inline кнопок в два столбца.
     """
 
     markup = telebot.types.InlineKeyboardMarkup()
 
-    for btn_odd, btn_even in zip(buttons[::2], buttons[1::2]):
+    for btn_odd, btn_even in zip(btns[::2], btns[1::2]):
         markup.add(
             telebot.types.InlineKeyboardButton(
                 text=btn_odd, callback_data=btn_odd),
@@ -59,7 +59,7 @@ def schedule_message():
     """
         Планировщик сообщений.
     """
-    def sending_confirmation():
+    def send_confirmation():
         """
             Отправка сообщения с вопросом о подтверждении готовности отвечать на вопрос.
         """
@@ -79,7 +79,7 @@ def schedule_message():
                     reply_markup=markup
                 )
 
-    schedule.every(1).minutes.do(sending_confirmation)
+    schedule.every(1).minutes.do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
