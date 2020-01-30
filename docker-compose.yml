@@ -4,7 +4,7 @@ services:
   bot:
     image: "hackfeed/iu7quiz"
     container_name: "iu7quizbot"
-    command: sh -c "python bot.py"
+    command: sh -c "PYTHONPATH='.' python bot/iu7quizbot.py"
     env_file:
       - credentials.env
     depends_on:
