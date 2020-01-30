@@ -37,3 +37,15 @@ COMPLEXITY_FACTOR = 0.2
 # когда из-за ожидания теряется 50% баллов за ожидание)
 HALF_WAITING_HOURS = 12
 HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
+
+# Конфигурация вебхука
+
+WEBHOOK_HOST = ''
+WEBHOOK_PORT = 8443
+WEBHOOK_LISTEN = '0.0.0.0'
+
+WEBHOOK_SSL_CERT = './webhook_cert.pem'
+WEBHOOK_SSL_PRIV = './webhook_pkey.pem'
+
+WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
+WEBHOOK_URL_PATH = "/%s/" % (TOKEN)

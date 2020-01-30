@@ -6,9 +6,14 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 from datetime import datetime
 from functools import reduce
 from random import randint
+
+import logging
+import ssl
 
 import time
 import multiprocessing
@@ -19,8 +24,43 @@ import mongoengine
 import bot.config as cfg
 from bot.dbinstances import Student, Question
 
+logger = telebot.logger
+telebot.logger.setLevel(logging.INFO)
+
 bot = telebot.TeleBot(cfg.TOKEN)
 mongoengine.connect(host=cfg.HOST)
+
+
+class WebhookHandler(BaseHTTPRequestHandler):
+    """
+        WebhookHandler, process webhook calls
+    """
+
+    server_version = "WebhookHandler/1.0"
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.end_headers()
+
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+
+    def do_POST(self):
+        if self.path == cfg.WEBHOOK_URL_PATH and \
+           'content-type' in self.headers and \
+           'content-length' in self.headers and \
+           self.headers['content-type'] == 'application/json':
+            json_string = self.rfile.read(int(self.headers['content-length']))
+
+            self.send_response(200)
+            self.end_headers()
+
+            update = telebot.types.Update.de_json(json_string)
+            bot.process_new_messages([update.message])
+        else:
+            self.send_error(403)
+            self.end_headers()
 
 
 def create_leaderboard_page(btn, prev_page=None):
@@ -321,4 +361,17 @@ def query_handler_scroll(call):
 
 if __name__ == "__main__":
     multiprocessing.Process(target=schedule_message, args=()).start()
-    bot.polling()
+
+    httpd = HTTPServer(
+        (cfg.WEBHOOK_LISTEN, cfg.WEBHOOK_PORT),
+        WebhookHandler
+    )
+
+    httpd.socket = ssl.wrap_socket(
+        httpd.socket,
+        certfile=cfg.WEBHOOK_SSL_CERT,
+        keyfile=cfg.WEBHOOK_SSL_PRIV,
+        server_side=True
+    )
+
+    httpd.serve_forever()
