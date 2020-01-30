@@ -361,6 +361,10 @@ def query_handler_scroll(call):
 
 if __name__ == "__main__":
     multiprocessing.Process(target=schedule_message, args=()).start()
+    bot.set_webhook(
+        url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH,
+        certificate=open(cfg.WEBHOOK_SSL_CERT, 'r')
+    )
 
     httpd = HTTPServer(
         (cfg.WEBHOOK_LISTEN, cfg.WEBHOOK_PORT),
