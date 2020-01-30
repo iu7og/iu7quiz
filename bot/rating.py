@@ -71,4 +71,4 @@ def get_rating():
 
         rating[student.tg_login] = summary
 
-    return sorted(rating.items(), key=lambda x: x[1])
+    return sorted(rating.items(), key=lambda x: x[1], reverse=True)

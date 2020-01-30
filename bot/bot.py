@@ -69,6 +69,7 @@ def schedule_message():
             if student.status == "standby":
                 update_status(student.user_id, "is_ready")
 
+                # Время отправки сообщения записывается в поле студента (qtime_start)
                 student.qtime_start = int(time.time())
 
                 markup = telebot.types.InlineKeyboardMarkup()
@@ -207,22 +208,33 @@ def query_handler_ready(call):
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
 
+        # Вычисление номера вопроса
         day = (len(questions) - 1) * 7 + datetime.today().weekday()
 
         datastore = json.loads(student.data)
+        # Если по какой-то причине нет словаря, описывающего вопрос сегодняшнего дня,
+        # то добавить словари для сегодняшнего дня и всех предыдущих.
         while (len(datastore) <= day):
             datastore.append(dict())
 
+        # В качестве объекта рассматривается словарь, относящийся к сегодняшнему дню.
         question_object = datastore[day]
 
+        # Если словарь пуст (то есть был только что создан), то проинициализируем его
+        # (записав в первое время - время реакции, однако, если будет дан неправильный ответ, то
+        # ответ будет удален).
         if "wrong" not in question_object.keys() or "right" not in question_object.keys():
             question_object["wrong"] = 0
             question_object["right"] = [[(int(time.time()) - student.qtime_start) / 3600, 0]]
 
+        # Если словарь уже был проинициализирован (то есть это не первый ответ на данный вопрос),
+        # то записать время реакции в последнюю пару времен (то есть в последний ответ).
         else:
-            question_object["right"][-1][0] = (int(time.time()) - student.qtime_start) / 3600
+            question_object["right"].append([(int(time.time()) - student.qtime_start) // 3600, 0])
 
+        # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
         student.qtime_start = call.message.chat.time
+        # Обновление информации об ответах на вопрос у студента.
         student.data = json.dumps(datastore)
 
         update_status(call.message.chat.id, "question")
@@ -255,18 +267,22 @@ def query_handler_questions(call):
         question_object = datastore[day]
 
         if call.data == question.correct_answer:
+            # Если ответ студент дал впервые, обновить статистику для вопроса
             if (len(question_object["right"]) == 1 and question_object["wrong"] == 0):
                 question.first_to_answer += 1
                 question.answers += 1
+            # Если ответ правильный, запомнить время ответа (время реакции уже имеется в данных).
             question_object["right"][-1][1] = call.message.chat.time - student.qtime_start
             student.qtime_start = 0
-            question_object.append([0, 0])
             bot.send_message(
                 call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
+            # Если ответ на вопрос дан впервые, обновить статистику.
             if (len(question_object["right"]) == 1 and question_object["wrong"] == 0):
                 question.answers += 1
             question_object["wrong"] += 1
+            # Удалить последний ответ из верных, если он оказался неверным.
+            question_object["right"].pop()
             bot.send_message(
                 call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
 
