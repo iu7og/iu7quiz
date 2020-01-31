@@ -28,7 +28,7 @@ codestyle:
   image: hackfeed/iu7quiz
   script:
     - mkdir ./pylint
-    - pylint --rcfile=/cfg/pylintrc $(find ./ -name \*.py) | tee pylint/pylintlog.txt || pylint-exit -efail -rfail -wfail $?
+    - pylint --rcfile=/cfg/pylintrc $(find ./ -name \*.py) | tee pylint/pylintlog.txt || pylint-exit -efail $?
     - SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylint/pylintlog.txt)
     - anybadge --label=pylint --value=$SCORE --file=pylint/pylint.svg -o 2=red 4=orange 8=yellow 10=green
     - echo -e "\n\e[1;33mYOUR \e[1;32mPYLINT\e[1;33m SCORE IS \e[1;32m$SCORE\e[0m\n"
