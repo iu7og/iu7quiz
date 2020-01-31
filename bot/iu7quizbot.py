@@ -8,7 +8,7 @@
 
 from datetime import datetime
 from functools import reduce
-from random import randint
+from random import randint, shuffle
 
 import time
 import multiprocessing
@@ -45,14 +45,14 @@ def create_leaderboard_page(btn, prev_page=None):
             new_page_start = int(
                 split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
 
-    page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
     page_text = ""
+    page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
+    medals = cfg.LB_MEDALS.copy() # Иначе в определенный момент память просто закончится.
 
     for i in range(len(page_list)):
         curr_index = i + 1 + new_page_start
-        page_text += cfg.LB_MEDALS.setdefault(curr_index, str(curr_index) + ".") + \
-            " @" + page_list[i][0] + ". Рейтинг: " + \
-            str(page_list[i][1]) + "\n"
+        page_text += "{} @{}. Рейтинг: {}\n".format(
+            medals.setdefault(curr_index, str(curr_index) + "."), page_list[i][0], page_list[i][1])
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
@@ -99,7 +99,6 @@ def send_confirmation():
 
     for student in Student.objects():
         if student.status == "standby":
-            update_status(student.user_id, "is_ready")
 
             markup = telebot.types.InlineKeyboardMarkup()
             markup.add(
@@ -112,13 +111,15 @@ def send_confirmation():
                 reply_markup=markup
             )
 
+            update_status(student.user_id, "is_ready")
+
 
 def schedule_message():
     """
         Планировщик сообщений.
     """
 
-    schedule.every(100).minutes.do(send_confirmation)
+    schedule.every(1).minutes.do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -157,14 +158,14 @@ def delete(message):
     Question.objects().delete()
     Student.objects().delete()
     question = Question(
-        day=2,
+        day=datetime.today().weekday(),
         text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
         answers=
-            ["A. Кострицкий Антон Александрович",
-            "B. Кострицкий Александр Сергеевич",
-            "C. Кострицкий Сергей Владимирович",
-            "D. Кострицкий Игорь Владимирович"],
-        correct_answer="C"
+            ["Кострицкий Антон Александрович",
+            "Кострицкий Александр Сергеевич",
+            "Кострицкий Сергей Владимирович",
+            "Кострицкий Игорь Владимирович"],
+        correct_answer="B"
     )
     print(question.answers)
     question.save()
@@ -183,7 +184,7 @@ def delete(message):
         )
 
         student.save()
-"""
+    """
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -262,14 +263,19 @@ def query_handler_ready(call):
     if student.status == "is_ready":
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
-        update_status(call.message.chat.id, "question")
+        shuffle(question.answers)
+
+        message = "❓ " + question.text + "\n\n"
+        for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
+            message += '📌' + btn + '. ' + answer + '\n'
 
         bot.send_message(
             call.message.chat.id,
-            "❓ " + question.text +
-            reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
-            reply_markup=create_markup(cfg.ANSWERS_BTNS)
+            message,
+            reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
         )
+
+        update_status(call.message.chat.id, "question")
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.ANSWERS_BTNS)
@@ -284,14 +290,20 @@ def query_handler_questions(call):
     if student.status == "question":
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
-        update_status(call.message.chat.id, "standby")
 
-        if call.data == question.correct_answer:
+        student_answer = call.message.text.split("\n")[
+            cfg.ANSWERS_BTNS[call.data] + 1][4:] # 4 - emoji + вариант ответа (перед самим ответом)
+        correct_answer = question.answers[
+            cfg.ANSWERS_BTNS[question.correct_answer] - 1]
+
+        if student_answer == correct_answer:
             bot.send_message(
                 call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             bot.send_message(
-                call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
+                call.message.chat.id, "❌ К сожалению, ответ неправильный, и он не будет засчитан.")
+
+        update_status(call.message.chat.id, "standby")
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.SCROLL_BTNS)
