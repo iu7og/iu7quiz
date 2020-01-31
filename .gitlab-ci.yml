@@ -13,7 +13,7 @@ badges:
       sed -e 's/[][]//g' -e 's/"//g' -e 's/ //g' | tr '}' '\n'  |
       awk -F':' '{print $3}' | awk 'END{print}') --file=badges/docker.svg -o --color=#0000FF
     - anybadge --label=channel --value='on telegram' --file=badges/telegram.svg -o --color=#00FFFF
-    - anybadge --label=branch --value=${CI_BRANCH_NAME} --file=badges/branch.svg -o --color=#4C1
+    - anybadge --label=branch --value=${CI_COMMIT_REF_NAME} --file=badges/branch.svg -o --color=#4C1
     - anybadge --label=license --value='BMSTU License v1.1' --file=badges/license.svg -o --color=#FE7D37
   artifacts:
     paths:
@@ -30,7 +30,7 @@ codestyle:
   image: hackfeed/iu7quiz
   script:
     - mkdir ./pylint
-    - pylint --rcfile=/cfg/pylintrc $(find ./ -name \*.py) | tee pylint/pylintlog.txt || pylint-exit -efail -rfail $?
+    - pylint --rcfile=/cfg/pylintrc $(find ./ -name \*.py) | tee pylint/pylintlog.txt || pylint-exit -efail -rfail -wfail $?
     - SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylint/pylintlog.txt)
     - anybadge --label=pylint --value=$SCORE --file=pylint/pylint.svg -o 2=red 4=orange 8=yellow 10=green
   artifacts:
