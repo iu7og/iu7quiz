@@ -38,7 +38,7 @@ def ready_update(datastore, day, start_time):
     return datastore
 
 
-def right_answer_handler(question_object, question, time, start_time):
+def right_answer_handler(question_object, question, time_now, start_time):
     """
         Обработка статистики вопроса и данных студента при правильном ответе на вопрос.
     """
@@ -48,7 +48,7 @@ def right_answer_handler(question_object, question, time, start_time):
         question.first_to_answer += 1
         question.answers += 1
     # Если ответ правильный, запомнить время ответа (время реакции уже имеется в данных).
-    question_object["right"][-1][1] = time - start_time
+    question_object["right"][-1][1] = time_now - start_time
     return question_object, question
 
 
