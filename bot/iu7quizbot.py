@@ -273,7 +273,7 @@ def query_handler_ready(call):
         day = (len(questions) - 1) * 7 + datetime.today().weekday()
 
         datastore = json.loads(student.data)
-        datastore = stat.ready_update(day, datastore)
+        datastore = stat.ready_update(day, datastore, student.qtime_start)
 
         # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
         student.qtime_start = call.message.chat.time
@@ -308,8 +308,8 @@ def query_handler_questions(call):
         datastore = json.loads(student.data)
 
         if call.data == question.correct_answer:
-            datastore[day], question = stat.right_answer_handler(datastore[day], question,
-                                                                 call.message.chat.time)
+            datastore[day], question = stat.right_answer_handler(
+                datastore[day], question, call.message.chat.time, student.qtime_start)
             bot.send_message(
                 call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
