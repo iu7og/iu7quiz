@@ -28,13 +28,15 @@ codestyle:
   stage: test
   image: hackfeed/iu7quiz
   script:
-    - pylint --exit-zero --rcfile=/cfg/pylint.rc $(find ./ -name \*.py) > pylintlog.txt
+    - (pylint --rcfile=/cfg/pylintrc $(find ./ -name \*.py) > pylintlog.txt ; echo $?) > pylintexit.txt
     - SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylintlog.txt)
     - anybadge --label=pylint --value=$SCORE --file=pylint.svg -o 2=red 4=orange 8=yellow 10=green
     - cat pylintlog.txt
+    - pylint-exit -efail $(cat pylintexit.txt)
   artifacts:
     paths:
-      - pylint*
+      - pylintlog.txt
+      - pylint.svg
     when: always
     expire_in: 30 days
   only:
