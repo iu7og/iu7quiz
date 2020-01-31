@@ -7,7 +7,6 @@
 """
 
 from datetime import datetime
-from functools import reduce
 from random import randint, shuffle
 
 import time
@@ -184,7 +183,7 @@ def delete(message):
         )
 
         student.save()
-    """
+"""
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -265,9 +264,9 @@ def query_handler_ready(call):
         question = questions[len(questions) - 1]
         shuffle(question.answers)
 
-        message = "❓ " + question.text + "\n\n"
+        message = "❓ {}\n\n".format(question.text)
         for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
-            message += '📌' + btn + '. ' + answer + '\n'
+            message += "📌{}. {}\n".format(btn, answer)
 
         bot.send_message(
             call.message.chat.id,
