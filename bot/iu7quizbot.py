@@ -18,6 +18,7 @@ import schedule
 import mongoengine
 
 import bot.config as cfg
+import bot.statistic as stat
 from bot.dbinstances import Student, Question
 
 bot = telebot.TeleBot(cfg.TOKEN)
@@ -100,7 +101,7 @@ def send_confirmation():
 
     for student in Student.objects():
         if student.status == "standby":
-            update_status(student.user_id, "is_ready")
+            student.status = "is_ready"
 
             # Время отправки сообщения записывается в поле студента (qtime_start)
             student.qtime_start = int(time.time())
@@ -115,6 +116,7 @@ def send_confirmation():
                 "Привет, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
                 reply_markup=markup
             )
+            student.save()
 
 
 def schedule_message():
@@ -247,10 +249,10 @@ def query_handler_reg(call):
     if student.status == "registration":
         student.group = call.data
         student.status = "standby"
-        student.save()
 
         bot.send_message(call.message.chat.id,
                          "✅ Вы успешно зарегистрированы в системе.")
+        student.save()
 
 
 @bot.callback_query_handler(lambda call: call.data == cfg.READY_BTN)
@@ -271,32 +273,15 @@ def query_handler_ready(call):
         day = (len(questions) - 1) * 7 + datetime.today().weekday()
 
         datastore = json.loads(student.data)
-        # Если по какой-то причине нет словаря, описывающего вопрос сегодняшнего дня,
-        # то добавить словари для сегодняшнего дня и всех предыдущих.
-        while (len(datastore) <= day):
-            datastore.append(dict())
-
-        # В качестве объекта рассматривается словарь, относящийся к сегодняшнему дню.
-        question_object = datastore[day]
-
-        # Если словарь пуст (то есть был только что создан), то проинициализируем его
-        # (записав в первое время - время реакции, однако, если будет дан неправильный ответ, то
-        # ответ будет удален).
-        if "wrong" not in question_object.keys() or "right" not in question_object.keys():
-            question_object["wrong"] = 0
-            question_object["right"] = [[(int(time.time()) - student.qtime_start) / 3600, 0]]
-
-        # Если словарь уже был проинициализирован (то есть это не первый ответ на данный вопрос),
-        # то записать время реакции в последнюю пару времен (то есть в последний ответ).
-        else:
-            question_object["right"].append([(int(time.time()) - student.qtime_start) // 3600, 0])
+        datastore = stat.ready_update(day, datastore)
 
         # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
         student.qtime_start = call.message.chat.time
         # Обновление информации об ответах на вопрос у студента.
         student.data = json.dumps(datastore)
+        student.status = "question"
+        student.save()
 
-        update_status(call.message.chat.id, "question")
 
         bot.send_message(
             call.message.chat.id,
@@ -319,33 +304,25 @@ def query_handler_questions(call):
     if student.status == "question":
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
-        update_status(call.message.chat.id, "standby")
 
         day = (len(questions) - 1) * 7 + datetime.today().weekday()
         datastore = json.loads(student.data)
-        question_object = datastore[day]
 
         if call.data == question.correct_answer:
-            # Если ответ студент дал впервые, обновить статистику для вопроса
-            if (len(question_object["right"]) == 1 and question_object["wrong"] == 0):
-                question.first_to_answer += 1
-                question.answers += 1
-            # Если ответ правильный, запомнить время ответа (время реакции уже имеется в данных).
-            question_object["right"][-1][1] = call.message.chat.time - student.qtime_start
-            student.qtime_start = 0
+            datastore[day], question = stat.right_answer_handler(datastore[day], question,
+                                                       call.message.chat.time)
             bot.send_message(
                 call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
-            # Если ответ на вопрос дан впервые, обновить статистику.
-            if (len(question_object["right"]) == 1 and question_object["wrong"] == 0):
-                question.answers += 1
-            question_object["wrong"] += 1
-            # Удалить последний ответ из верных, если он оказался неверным.
-            question_object["right"].pop()
+            datastore[day], question = stat.wrong_answer_handler(datastore[day], question)
             bot.send_message(
                 call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
 
+        student.qtime_start = 0
         student.data = json.dumps(datastore)
+        student.status = "standby"
+        student.save()
+        question.save()
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.SCROLL_BTNS)

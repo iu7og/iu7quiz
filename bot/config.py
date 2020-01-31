@@ -34,6 +34,9 @@ ERR_DCRMNT_FACTOR = 0.2
 COMPLEXITY_FACTOR = 0.2
 
 # Коэффициент потери баллов за ожидание (кол-во часов,
-# когда из-за ожидания теряется 50% баллов за ожидание)
+# когда из-за ожидания теряется 50% баллов за ожидание).
 HALF_WAITING_HOURS = 12
 HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
+
+# Флаг отладочной печати (если True, то она будет)
+DEVELOP_MODE = False
