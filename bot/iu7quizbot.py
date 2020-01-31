@@ -18,7 +18,7 @@ import schedule
 import mongoengine
 
 import bot.config as cfg
-import bot.statistic as stat
+import bot.statistics as stat
 from bot.dbinstances import Student, Question
 
 bot = telebot.TeleBot(cfg.TOKEN)
@@ -282,7 +282,6 @@ def query_handler_ready(call):
         student.status = "question"
         student.save()
 
-
         bot.send_message(
             call.message.chat.id,
             "❓ " + question.text +
@@ -310,11 +309,12 @@ def query_handler_questions(call):
 
         if call.data == question.correct_answer:
             datastore[day], question = stat.right_answer_handler(datastore[day], question,
-                                                       call.message.chat.time)
+                                                                 call.message.chat.time)
             bot.send_message(
                 call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
-            datastore[day], question = stat.wrong_answer_handler(datastore[day], question)
+            datastore[day], question = stat.wrong_answer_handler(
+                datastore[day], question)
             bot.send_message(
                 call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
 

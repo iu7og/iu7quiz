@@ -13,7 +13,7 @@ def ready_update(datastore, day):
     # Если словарь пуст (то есть был только что создан), то проинициализируем его
     # (записав в первое время - время реакции, однако, если будет дан неправильный ответ, то
     # ответ будет удален).
-    if "wrong" not in question_object.keys() or "right" not in question_object.keys():
+    if "wrong" not in question_object or "right" not in question_object:
         question_object["wrong"] = 0
         question_object["right"] = [[(int(time.time()) - student.qtime_start) // 3600, 0]]
 
