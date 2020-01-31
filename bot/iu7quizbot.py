@@ -50,8 +50,8 @@ def create_leaderboard_page(btn, prev_page=None):
 
     for i in range(len(page_list)):
         curr_index = i + 1 + new_page_start
-        page_text += "{} @{}. Рейтинг: {}\n".format(
-            medals.setdefault(curr_index, str(curr_index) + "."), page_list[i][0], page_list[i][1])
+        page_text += f"{medals.setdefault(curr_index, str(curr_index) + ".")} \
+            @{page_list[i][0]}. Рейтинг: {page_list[i][1]}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
@@ -264,9 +264,9 @@ def query_handler_ready(call):
         question = questions[len(questions) - 1]
         shuffle(question.answers)
 
-        message = "❓ {}\n\n".format(question.text)
+        message = f"❓ {question.text}\n\n"
         for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
-            message += "📌{}. {}\n".format(btn, answer)
+            message += f"📌{btn}. {answer}\n"
 
         bot.send_message(
             call.message.chat.id,
