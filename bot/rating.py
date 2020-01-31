@@ -64,7 +64,7 @@ def answer_summary(student, question, answer_number=-1):
     """
 
     # Выгрузка поля, отвечающего в поле данных студента `student` за вопрос `question`
-    datastore = json.load(student.data)[question.day]
+    datastore = json.loads(student.data)[question.day]
 
     q_complexity = 1 - (question.first_to_answer / question.total_answers),
     waiting_time = datastore["right"][answer_number][0]
