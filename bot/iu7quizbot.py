@@ -50,8 +50,8 @@ def create_leaderboard_page(btn, prev_page=None):
 
     for i in range(len(page_list)):
         curr_index = i + 1 + new_page_start
-        page_text += f"{medals.setdefault(curr_index, str(curr_index) + ".")} \
-            @{page_list[i][0]}. Рейтинг: {page_list[i][1]}\n"
+        page_text += f"{medals.setdefault(curr_index, str(curr_index) + '.')}" + \
+            f"@{page_list[i][0]}. Рейтинг: {page_list[i][1]}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
