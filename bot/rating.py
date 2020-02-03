@@ -97,9 +97,10 @@ def get_rating():
 
     for student in Student.objects():
         summary = 0
+        datastore = json.loads(student.data)
 
         for question in questions:
-            for i in range(len(student.data[question.day]["right"])):
+            for i in range(len(datastore[question.day]["right"])):
                 summary += answer_summary(student, question, i)
 
         rating[student.tg_login] = summary / len(questions) if summary != 0 else 0
