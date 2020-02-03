@@ -274,17 +274,10 @@ def query_handler_ready(call):
 
     bot.answer_callback_query(call.id)
     student = Student.objects(user_id=call.message.chat.id).first()
-    today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     if student.status == "is_ready":
-<<<<<<< HEAD
-        questions = Question.objects(day=today_question_day)
-        question = questions[len(questions) - 1]
-=======
         # Номер вопроса берется у первого вопроса в очереди
         day = student.queue[0]["question_day"]
->>>>>>> feature/questions-queue
-
         question = Question.objects(day=day).first()
 
         datastore = json.loads(student.data)
@@ -319,16 +312,10 @@ def query_handler_questions(call):
 
     bot.answer_callback_query(call.id)
     student = Student.objects(user_id=call.message.chat.id).first()
-    today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     if student.status == "question":
-<<<<<<< HEAD
-        questions = Question.objects(day=today_question_day)
-        question = questions[len(questions) - 1]
-=======
         day = student.queue[0]["question_day"]
         question = Question.objects(day=day).first()
->>>>>>> feature/questions-queue
 
         datastore = json.loads(student.data)
 
