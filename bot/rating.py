@@ -102,7 +102,7 @@ def get_rating():
             for i in range(len(student.data[question.day]["right"])):
                 summary += answer_summary(student, question, i)
 
-        rating[student.tg_login] = summary / len(questions)
+        rating[student.tg_login] = summary / len(questions) if summary != 0 else 0
     if cfg.DEVELOP_MODE:
         print("rating:\n", rating, end="\n\n")
 
