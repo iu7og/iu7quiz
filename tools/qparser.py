@@ -8,7 +8,7 @@
 
 import os
 import mongoengine
-from bot.config import DB_NAME, DB_USER, DB_PASS
+from bot.config import DB_NAME, DB_USER, DB_PASS, SYMBOLS_PER_SECOND
 from bot.dbinstances import Question
 
 
@@ -31,11 +31,13 @@ def parse_to_mongo():
     with open("./data/questions.txt") as file:
         for i in range(WEEK):
             data = [next(file)[:-1] for _ in range(RECORD_SIZE)]
+            best_time_to_answer = len("".join(data[0:5])) / SYMBOLS_PER_SECOND
             question = Question(
                 day=qcount + i,
                 text=data[0],
                 answers=[data[j] for j in range(1, 5)],
-                correct_answer=data[5]
+                correct_answer=data[5],
+                best_time_to_answer=best_time_to_answer
             )
             question.save()
 

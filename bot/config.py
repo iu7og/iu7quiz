@@ -20,7 +20,7 @@ HOST = f"mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:27017/{DB_NAME}"
 
 # Конфигурация клиентской части бота.
 GROUPS_BTNS = ("ИУ7-21Б", "ИУ7-22Б", "ИУ7-23Б", "ИУ7-24Б", "ИУ7-25Б", "ИУ7-26Б")
-ANSWERS_BTNS = ('A', 'B', 'C', 'D')
+ANSWERS_BTNS = {"A": 1, "B": 2, "C": 3, "D": 4}
 SCROLL_BTNS = ("◀️", "▶️")
 READY_BTN = "Готов"
 LB_MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
@@ -32,9 +32,10 @@ WAITING_FACTOR = 0.35
 ANSWER_TIME_FACTOR = 1 - WAITING_FACTOR
 ERR_DCRMNT_FACTOR = 0.2
 COMPLEXITY_FACTOR = 0.2
+SYMBOLS_PER_SECOND = 25
 
 # Коэффициент потери баллов за ожидание (кол-во часов,
-# когда из-за ожидания теряется 50% баллов за ожидание)
+# когда из-за ожидания теряется 50% баллов за ожидание).
 HALF_WAITING_HOURS = 12
 HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
 
@@ -49,3 +50,6 @@ WEBHOOK_SSL_PRIV = './webhook_pkey.pem'
 
 WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
+
+# Флаг отладочной печати (если True, то она будет)
+DEVELOP_MODE = False

@@ -7,12 +7,15 @@
 """
 
 from datetime import datetime
-from functools import reduce
-from random import randint
+from random import randint, shuffle
 
+<<<<<<< HEAD
 import logging
 import ssl
 
+=======
+import json
+>>>>>>> develop
 import time
 import multiprocessing
 import telebot
@@ -22,6 +25,7 @@ import mongoengine
 from aiohttp import web
 
 import bot.config as cfg
+import bot.statistics as stat
 from bot.dbinstances import Student, Question
 
 logger = telebot.logger
@@ -77,14 +81,14 @@ def create_leaderboard_page(btn, prev_page=None):
             new_page_start = int(
                 split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
 
-    page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
     page_text = ""
+    page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
+    medals = cfg.LB_MEDALS.copy()  # Иначе в определенный момент память просто закончится.
 
-    for i in range(len(page_list)):
+    for i, page in enumerate(page_list):
         curr_index = i + 1 + new_page_start
-        page_text += cfg.LB_MEDALS.setdefault(curr_index, str(curr_index) + ".") + \
-            " @" + page_list[i][0] + ". Рейтинг: " + \
-            str(page_list[i][1]) + "\n"
+        page_text += f"{medals.setdefault(curr_index, str(curr_index) + '.')}" + \
+            f"@{page[0]}. Рейтинг: {page[1]}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
@@ -115,10 +119,8 @@ def create_markup(btns):
 
     for btn_odd, btn_even in zip(btns[::2], btns[1::2]):
         markup.add(
-            telebot.types.InlineKeyboardButton(
-                text=btn_odd, callback_data=btn_odd),
-            telebot.types.InlineKeyboardButton(
-                text=btn_even, callback_data=btn_even)
+            telebot.types.InlineKeyboardButton(text=btn_odd, callback_data=btn_odd),
+            telebot.types.InlineKeyboardButton(text=btn_even, callback_data=btn_even)
         )
 
     return markup
@@ -131,11 +133,15 @@ def send_confirmation():
 
     for student in Student.objects():
         if student.status == "standby":
-            update_status(student.user_id, "is_ready")
+            student.status = "is_ready"
+
+            # Время отправки сообщения записывается в поле студента (qtime_start)
+            student.qtime_start = int(time.time())
 
             markup = telebot.types.InlineKeyboardMarkup()
             markup.add(
-                telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN))
+                telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN)
+            )
 
             bot.send_message(student.user_id, "📝")
             bot.send_message(
@@ -143,6 +149,9 @@ def send_confirmation():
                 "Привет, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
                 reply_markup=markup
             )
+            student.save()
+
+            update_status(student.user_id, "is_ready")
 
 
 def schedule_message():
@@ -150,7 +159,7 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every(100).minutes.do(send_confirmation)
+    schedule.every(30).minutes.do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -177,44 +186,43 @@ def authorization(message):
         )
 
     else:
-        bot.send_message(
-            message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
+        bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
 """
-@bot.message_handler(commands=["unreg"])
-def delete(message):
-    #Отладочная комманда.
+    @bot.message_handler(commands=["unreg"])
+    def delete(message):
+        #Отладочная комманда.
 
-    Question.objects().delete()
-    Student.objects().delete()
-    question = Question(
-        day=2,
-        text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
-        answers=
-            ["A. Кострицкий Антон Александрович",
-            "B. Кострицкий Александр Сергеевич",
-            "C. Кострицкий Сергей Владимирович",
-            "D. Кострицкий Игорь Владимирович"],
-        correct_answer="C"
-    )
-    print(question.answers)
-    question.save()
-
-    print(message)
-    print(Student.objects(user_id=message.from_user.id))
-    Student.objects(user_id=message.from_user.id).delete()
-    print(Student.objects(user_id=message.from_user.id))
-
-    for i in range(103):
-        student = Student(
-            user_id=randint(1, 999999),
-            login="user"+str(randint(1,999)),
-            group=str(randint(1,9999999999)),
-            status="standby"
+        Question.objects().delete()
+        Student.objects().delete()
+        question = Question(
+            day=datetime.today().weekday(),
+            text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
+            answers=
+                ["Кострицкий Антон Александрович",
+                "Кострицкий Александр Сергеевич",
+                "Кострицкий Сергей Владимирович",
+                "Кострицкий Игорь Владимирович"],
+            correct_answer="B"
         )
+        print(question.answers)
+        question.save()
 
-        student.save()
+        print(message)
+        print(Student.objects(user_id=message.from_user.id))
+        Student.objects(user_id=message.from_user.id).delete()
+        print(Student.objects(user_id=message.from_user.id))
+
+        for i in range(103):
+            student = Student(
+                user_id=randint(1, 999999),
+                login="user"+str(randint(1,999)),
+                group=str(randint(1,9999999999)),
+                status="standby"
+            )
+
+            student.save()
 """
 
 
@@ -234,7 +242,8 @@ def show_leaderboard(message):
             markup.add(
                 telebot.types.InlineKeyboardButton(
                     text=cfg.SCROLL_BTNS[1],
-                    callback_data=cfg.SCROLL_BTNS[1])
+                    callback_data=cfg.SCROLL_BTNS[1]
+                )
             )
 
             bot.send_message(message.chat.id, page, reply_markup=markup)
@@ -251,8 +260,7 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        bot.send_message(
-            message.chat.id, "Тут напишем про себя и про преподавателей.")
+        bot.send_message(message.chat.id, "Тут напишем про себя и про преподавателей.")
 
 
 # @bot.message_handler(func=lambda message: True)
@@ -275,10 +283,9 @@ def query_handler_reg(call):
     if student.status == "registration":
         student.group = call.data
         student.status = "standby"
-        student.save()
 
-        bot.send_message(call.message.chat.id,
-                         "✅ Вы успешно зарегистрированы в системе.")
+        bot.send_message(call.message.chat.id, "✅ Вы успешно зарегистрированы в системе.")
+        student.save()
 
 
 @bot.callback_query_handler(lambda call: call.data == cfg.READY_BTN)
@@ -294,13 +301,29 @@ def query_handler_ready(call):
     if student.status == "is_ready":
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
-        update_status(call.message.chat.id, "question")
+
+        # Вычисление номера вопроса
+        day = (len(questions) - 1) * 7 + datetime.today().weekday()
+
+        datastore = json.loads(student.data)
+        datastore = stat.ready_update(datastore, day, student.qtime_start)
+
+        # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
+        student.qtime_start = int(time.time())
+        # Обновление информации об ответах на вопрос у студента.
+        student.data = json.dumps(datastore)
+        student.status = "question"
+        student.save()
+        shuffle(question.answers)
+
+        message = f"❓ {question.text}\n\n"
+        for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
+            message += f"📌{btn}. {answer}\n"
 
         bot.send_message(
             call.message.chat.id,
-            "❓ " + question.text +
-            reduce(lambda x, y: x + "📌 " + y + "\n", question.answers, "\n\n"),
-            reply_markup=create_markup(cfg.ANSWERS_BTNS)
+            message,
+            reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
         )
 
 
@@ -308,6 +331,7 @@ def query_handler_ready(call):
 def query_handler_questions(call):
     """
         Обработка нажатия inline-кнопок с выбором ответа студентом.
+        Обновление статистики после ответа на вопрос.
     """
 
     bot.answer_callback_query(call.id)
@@ -316,14 +340,31 @@ def query_handler_questions(call):
     if student.status == "question":
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
+
+        day = (len(questions) - 1) * 7 + datetime.today().weekday()
+        datastore = json.loads(student.data)
+
+        # 4 - emoji + вариант ответа (перед самим ответом)
+        student_answer = call.message.text.split("\n")[cfg.ANSWERS_BTNS[call.data] + 1][4:]
+        correct_answer = question.answers[cfg.ANSWERS_BTNS[question.correct_answer] - 1]
+
+        if student_answer == correct_answer:
+            datastore[day], question = stat.right_answer_handler(
+                datastore[day], question, int(time.time()), student.qtime_start)
+            bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
+        else:
+            datastore[day], question = stat.wrong_answer_handler(
+                datastore[day], question)
+            bot.send_message(call.message.chat.id,
+                             "❌ К сожалению, ответ неправильный, и он не будет засчитан.")
+
         update_status(call.message.chat.id, "standby")
 
-        if call.data == question.correct_answer:
-            bot.send_message(
-                call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
-        else:
-            bot.send_message(
-                call.message.chat.id, "❌ К сожалению, ответ неправильный и он не будет засчитан.")
+        student.qtime_start = 0
+        student.data = json.dumps(datastore)
+        student.status = "standby"
+        student.save()
+        question.save()
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.SCROLL_BTNS)
@@ -338,8 +379,7 @@ def query_handler_scroll(call):
     if is_border:
         markup = telebot.types.InlineKeyboardMarkup()
         new_btn = "◀️" if call.data == "▶️" else "▶️"
-        markup.add(
-            telebot.types.InlineKeyboardButton(text=new_btn, callback_data=new_btn))
+        markup.add(telebot.types.InlineKeyboardButton(text=new_btn, callback_data=new_btn))
     else:
         markup = create_markup(cfg.SCROLL_BTNS)
 
