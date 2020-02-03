@@ -31,7 +31,6 @@ def create_leaderboard_page(btn, prev_page=None):
     """
 
     students = rt.get_rating()
-    print(len(students))
 
     if prev_page is None:
         new_page_start = 0
@@ -50,7 +49,7 @@ def create_leaderboard_page(btn, prev_page=None):
     for i, page in enumerate(page_list):
         curr_index = i + 1 + new_page_start
         page_text += f"{medals.setdefault(curr_index, str(curr_index) + '. ')}" + \
-            f"@{page[0]}. Рейтинг: {page[1]}\n"
+            f"@{page[0]}. Рейтинг: {page[1]:.2f}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
@@ -93,7 +92,7 @@ def send_confirmation():
             bot.send_message(student.user_id, "📝")
             bot.send_message(
                 student.user_id,
-                "Доброго времени суток, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+                "Доброго времени суток! Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
                 reply_markup=markup
             )
 
@@ -105,7 +104,8 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("18:21").do(send_confirmation)
+    schedule.every().day.at("10:00").do(send_confirmation)
+    #schedule.every(1).minute.do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -136,6 +136,7 @@ def authorization(message):
         bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
+"""
 @bot.message_handler(commands=["unreg"])
 def delete(message):
         #Отладочная комманда.
@@ -171,6 +172,7 @@ def delete(message):
         )
 
         student.save()
+"""
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -322,9 +324,7 @@ def query_handler_scroll(call):
 
     bot.answer_callback_query(call.id)
     new_page, is_border = create_leaderboard_page(call.data, call.message.text)
-    print(new_page)
 
-    print(Student.objects.count())
     if is_border:
         markup = telebot.types.InlineKeyboardMarkup()
         new_btn = "◀️" if call.data == "▶️" else "▶️"
