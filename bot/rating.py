@@ -106,7 +106,7 @@ def get_rating():
             else:
                 break
 
-        rating[student.tg_login] = summary / len(questions) if summary != 0 else 0
+        rating[student.login] = summary / len(questions) if summary != 0 else 0
     if cfg.DEVELOP_MODE:
         print("rating:\n", rating, end="\n\n")
 
