@@ -104,7 +104,7 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("10:00").do(send_confirmation)
+    schedule.every().day.at("17:35").do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -135,41 +135,41 @@ def authorization(message):
         bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
-"""
-    @bot.message_handler(commands=["unreg"])
-    def delete(message):
+@bot.message_handler(commands=["unreg"])
+def delete(message):
         #Отладочная комманда.
 
-        Question.objects().delete()
-        Student.objects().delete()
-        question = Question(
-            day=datetime.today().weekday(),
-            text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
-            answers=
-                ["Кострицкий Антон Александрович",
-                "Кострицкий Александр Сергеевич",
-                "Кострицкий Сергей Владимирович",
-                "Кострицкий Игорь Владимирович"],
-            correct_answer="B"
+    Question.objects().delete()
+    Student.objects().delete()
+    question = Question(
+        day=datetime.today().weekday(),
+        text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
+        answers=
+            ["Кострицкий Антон Александрович",
+            "Кострицкий Александр Сергеевич",
+            "Кострицкий Сергей Владимирович",
+            "Кострицкий Игорь Владимирович"],
+            correct_answer="B",
+            best_time_to_answer=5
         )
-        print(question.answers)
-        question.save()
 
-        print(message)
-        print(Student.objects(user_id=message.from_user.id))
-        Student.objects(user_id=message.from_user.id).delete()
-        print(Student.objects(user_id=message.from_user.id))
+    print(question.answers)
+    question.save()
 
-        for i in range(103):
-            student = Student(
-                user_id=randint(1, 999999),
-                login="user"+str(randint(1,999)),
-                group=str(randint(1,9999999999)),
-                status="standby"
-            )
+    print(message)
+    print(Student.objects(user_id=message.from_user.id))
+    Student.objects(user_id=message.from_user.id).delete()
+    print(Student.objects(user_id=message.from_user.id))
 
-            student.save()
-"""
+    for i in range(103):
+        student = Student(
+            user_id=randint(1, 999999),
+            login="user"+str(randint(1,999)),
+            group=str(randint(1,9999999999)),
+            status="standby"
+        )
+
+        student.save()
 
 
 @bot.message_handler(commands=["leaderboard"])
