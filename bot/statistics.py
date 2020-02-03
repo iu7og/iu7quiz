@@ -30,7 +30,7 @@ def ready_update(datastore, day, start_time):
     # Если словарь уже был проинициализирован (то есть это не первый ответ на данный вопрос),
     # то записать время реакции.
 
-    return datastore, int(time.time()) - start_time
+    return datastore, time.time() - start_time / 3600
 
 
 def right_answer_handler(question_object, question, time_now, start_time, waiting_time):
@@ -56,5 +56,5 @@ def wrong_answer_handler(question_object, question):
     if len(question_object["right"]) == 0 and len(question_object["wrong"]) == 0:
         question.total_answers += 1
     question_object["wrong"].append(
-        len(question_object["right"]) - 1 + len(question_object["wrong"]))
+        len(question_object["right"]) + len(question_object["wrong"]))
     return question_object, question
