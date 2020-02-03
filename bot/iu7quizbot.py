@@ -6,8 +6,6 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
 from datetime import datetime
 from functools import reduce
 from random import randint
@@ -21,6 +19,8 @@ import telebot
 import schedule
 import mongoengine
 
+from aiohttp import web
+
 import bot.config as cfg
 from bot.dbinstances import Student, Question
 
@@ -30,37 +30,29 @@ telebot.logger.setLevel(logging.INFO)
 bot = telebot.TeleBot(cfg.TOKEN)
 mongoengine.connect(host=cfg.HOST)
 
+app = web.Application()
 
-class WebhookHandler(BaseHTTPRequestHandler):
-    """
-        WebhookHandler, process webhook calls
-    """
 
-    server_version = "WebhookHandler/1.0"
+async def handle(request):
+    if request.match_info.get('token') == bot.token:
+        request_body_dict = await request.json()
+        update = telebot.types.Update.de_json(request_body_dict)
+        bot.process_new_updates([update])
+        return web.Response()
+    else:
+        return web.Response(status=403)
 
-    def do_HEAD(self):
-        self.send_response(200)
-        self.end_headers()
 
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
+app.router.add_post('/{token}/', handle)
 
-    def do_POST(self):
-        if self.path == cfg.WEBHOOK_URL_PATH and \
-           'content-type' in self.headers and \
-           'content-length' in self.headers and \
-           self.headers['content-type'] == 'application/json':
-            json_string = self.rfile.read(int(self.headers['content-length']))
+bot.remove_webhook()
+bot.set_webhook(
+    url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH,
+    certificate=open(cfg.WEBHOOK_SSL_CERT, 'r')
+)
 
-            self.send_response(200)
-            self.end_headers()
-
-            update = telebot.types.Update.de_json(json_string)
-            bot.process_new_messages([update.message])
-        else:
-            self.send_error(403)
-            self.end_headers()
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context.load_cert_chain(cfg.WEBHOOK_SSL_CERT, cfg.WEBHOOK_SSL_PRIV)
 
 
 def create_leaderboard_page(btn, prev_page=None):
@@ -361,21 +353,10 @@ def query_handler_scroll(call):
 
 if __name__ == "__main__":
     multiprocessing.Process(target=schedule_message, args=()).start()
-    bot.set_webhook(
-        url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH,
-        certificate=open(cfg.WEBHOOK_SSL_CERT, 'r')
-    )
 
-    httpd = HTTPServer(
-        (cfg.WEBHOOK_LISTEN, cfg.WEBHOOK_PORT),
-        WebhookHandler
+    web.run_app(
+        app,
+        host=cfg.WEBHOOK_LISTEN,
+        port=cfg.WEBHOOK_PORT,
+        ssl_context=context,
     )
-
-    httpd.socket = ssl.wrap_socket(
-        httpd.socket,
-        certfile=cfg.WEBHOOK_SSL_CERT,
-        keyfile=cfg.WEBHOOK_SSL_PRIV,
-        server_side=True
-    )
-
-    httpd.serve_forever()
