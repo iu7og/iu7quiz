@@ -36,7 +36,7 @@ app = web.Application()
 
 async def handle(request):
     """
-        61g 6@6y T@p3
+        AIOHTTP обработчик.
     """
 
     if request.match_info.get('token') == bot.token:
@@ -51,10 +51,7 @@ async def handle(request):
 app.router.add_post('/{token}/', handle)
 
 bot.remove_webhook()
-bot.set_webhook(
-    url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH,
-    certificate=open(cfg.WEBHOOK_SSL_CERT, 'r')
-)
+bot.set_webhook(url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH)
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 context.load_cert_chain(cfg.WEBHOOK_SSL_CERT, cfg.WEBHOOK_SSL_PRIV)
