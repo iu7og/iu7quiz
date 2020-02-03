@@ -19,7 +19,7 @@ class Student(Document):
     group = StringField(required=True, max_length=200, default="None")
     status = StringField(required=True, max_length=30)
     data = StringField(required=True, default="[]")
-    qtime_start = IntField(required=True)
+    qtime_start = IntField(required=False)
 
 
 class Question(Document):
