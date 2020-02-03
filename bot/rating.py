@@ -69,8 +69,17 @@ def answer_summary(student, question, answer_number=-1):
     q_complexity = 1 - (question.first_to_answer / question.total_answers)
     waiting_time = datastore["right"][answer_number][0]
     time_of_answer = datastore["right"][answer_number][1]
-    attempt = answer_number + 1 + datastore["wrong"] if \
-        answer_number != -1 else len(datastore["right"]) + datastore["wrong"]
+
+    if answer_number == -1 or answer_number >= len(datastore["right"]) - 1:
+        attempt = len(datastore["right"]) + len(datastore["wrong"]) - 1
+    else:
+        attempt = 0
+        answer_number += 1
+        while (answer_number):
+            if attempt not in datastore["wrong"]:
+                answer_number -= 1
+            attempt += 1
+
     good_answer_time = question.best_time_to_answer
 
     if cfg.DEVELOP_MODE:

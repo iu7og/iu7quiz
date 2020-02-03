@@ -26,7 +26,7 @@ def ready_update(datastore, day, start_time):
     # (записав в первое время - время реакции, однако, если будет дан неправильный ответ, то
     # ответ будет удален).
     if "wrong" not in question_object or "right" not in question_object:
-        question_object["wrong"] = 0
+        question_object["wrong"] = list()
         question_object["right"] = [
             [(int(time.time()) - start_time) // 3600, 0]]
 
@@ -44,7 +44,7 @@ def right_answer_handler(question_object, question, time_now, start_time):
     """
 
     # Если ответ студент дал впервые, обновить статистику для вопроса.
-    if len(question_object["right"]) == 1 and question_object["wrong"] == 0:
+    if len(question_object["right"]) == 1 and len(question_object["wrong"]) == 0:
         question.first_to_answer += 1
         question.total_answers += 1
     # Если ответ правильный, запомнить время ответа (время реакции уже имеется в данных).
@@ -58,9 +58,10 @@ def wrong_answer_handler(question_object, question):
     """
 
     # Если ответ на вопрос дан впервые, обновить статистику.
-    if len(question_object["right"]) == 1 and question_object["wrong"] == 0:
+    if len(question_object["right"]) == 1 and len(question_object["wrong"]) == 0:
         question.total_answers += 1
-    question_object["wrong"] += 1
+    question_object["wrong"].append(
+        len(question_object["right"]) - 1 + len(question_object["wrong"]))
     # Удалить последний ответ из верных, если он оказался неверным.
     question_object["right"].pop()
     return question_object, question
