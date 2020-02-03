@@ -83,23 +83,31 @@ def send_confirmation():
         if student.status == "standby":
             student.status = "is_ready"
 
-            # Время отправки сообщения записывается в поле студента (qtime_start)
-            student.qtime_start = time.time()
-
-            markup = telebot.types.InlineKeyboardMarkup()
-            markup.add(
-                telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN)
-            )
-
-            bot.send_message(student.user_id, "📝")
-            bot.send_message(
-                student.user_id,
-                "Доброго времени суток! " + \
-                    "Готовы ли вы сейчас ответить на вопросы по материалам лекций?",
-                reply_markup=markup
-            )
-
+            student = send_single_confirmation(student)
             student.save()
+
+
+def send_single_confirmation(student):
+    """
+        Отправка одному студенту сообщения с вопросом о готовности отвечать на вопрос.
+    """
+
+    # Время отправки сообщения записывается в поле студента (qtime_start)
+    student.qtime_start = time.time()
+
+    markup = telebot.types.InlineKeyboardMarkup()
+    markup.add(
+        telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN)
+    )
+
+    bot.send_message(student.user_id, "📝")
+    bot.send_message(
+        student.user_id,
+        "Доброго времени суток! " + \
+        "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+        reply_markup=markup
+    )
+    return student
 
 
 def update_queue():
@@ -269,11 +277,15 @@ def query_handler_ready(call):
     today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     if student.status == "is_ready":
+<<<<<<< HEAD
         questions = Question.objects(day=today_question_day)
         question = questions[len(questions) - 1]
+=======
+        # Номер вопроса берется у первого вопроса в очереди
+        day = student.queue[0]["question_day"]
+>>>>>>> feature/questions-queue
 
-        # Вычисление номера вопроса
-        day = (len(questions) - 1) * 7 + datetime.today().weekday()
+        question = Question.objects(day=day).first()
 
         datastore = json.loads(student.data)
         datastore, student.waiting_time = stat.ready_update(datastore, day, student.qtime_start)
@@ -310,34 +322,48 @@ def query_handler_questions(call):
     today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     if student.status == "question":
+<<<<<<< HEAD
         questions = Question.objects(day=today_question_day)
         question = questions[len(questions) - 1]
+=======
+        day = student.queue[0]["question_day"]
+        question = Question.objects(day=day).first()
+>>>>>>> feature/questions-queue
 
-        day = (len(questions) - 1) * 7 + datetime.today().weekday()
         datastore = json.loads(student.data)
 
         # 4 - emoji + вариант ответа (перед самим ответом)
         student_answer = call.message.text.split("\n")[cfg.ANSWERS_BTNS[call.data] + 1][4:]
         correct_answer = question.answers[cfg.ANSWERS_BTNS[question.correct_answer] - 1]
 
+        # Очередь очищается от текущего вопроса (и обзаводится новым в некоторых случаях)
+        # внутри handler'ов.
         if student_answer == correct_answer:
-            datastore[day], question = stat.right_answer_handler(
+            datastore[day], question, student.queue = stat.right_answer_handler(
                 datastore[day], question, time.time(), student.qtime_start,
-                student.waiting_time)
+                student.queue, student.waiting_time)
             bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
-            datastore[day], question = stat.wrong_answer_handler(
-                datastore[day], question)
+            datastore[day], question, student.queue = stat.wrong_answer_handler(
+                datastore[day], question, student.queue)
             bot.send_message(call.message.chat.id,
                              "❌ К сожалению, ответ неправильный, и он не будет засчитан.")
 
+        question.save()
+
+        # Если есть вопросы, запланированные на сегодня, то еще раз спрашиваем о готовности
+        # и задаем вопрос.
+        if student.queue[0]["day_left"] <= 0:
+            send_single_confirmation(student)
+            student.status = "is_ready"
+        else:
+            student.status = "standby"
+
+        student.data = json.dumps(datastore)
         student.qtime_start = 0
         student.waiting_time = 0
-        student.data = json.dumps(datastore)
-        student.status = "standby"
 
         student.save()
-        question.save()
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.SCROLL_BTNS)
