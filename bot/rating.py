@@ -8,6 +8,7 @@
 """
 
 
+import json
 from math import exp
 import bot.config as cfg
 from bot.dbinstances import Student, Question
@@ -18,6 +19,8 @@ def waiting_score(time_in_hours):
         Расчет доли баллов за быстроту реакции.
     """
 
+    if cfg.DEVELOP_MODE:
+        print("waiting time in hours:", time_in_hours, end="\n\n")
     return exp(-cfg.HALF_WAITING_FACTOR * time_in_hours)
 
 
@@ -26,7 +29,11 @@ def answer_speed_score(time_in_secs, good_time):
         Расчет доли баллов за быстроту ответа.
     """
 
-    return 9 * good_time / (time_in_secs + 9 * good_time)
+    score = 9 * good_time / (time_in_secs + 9 * good_time)
+    if cfg.DEVELOP_MODE:
+        print("answer time:", time_in_secs,
+              "\ngood time:", good_time, "score:", score)
+    return score
 
 
 def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answer_time):
@@ -37,6 +44,17 @@ def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answe
     answer_score = (cfg.WAITING_FACTOR * waiting_score(waiting_time) +
                     cfg.ANSWER_TIME_FACTOR * answer_speed_score(answer_time, good_answer_time))
     complexity = (1 - cfg.COMPLEXITY_FACTOR * q_complexity)
+
+    if cfg.DEVELOP_MODE:
+        print("answer time:", answer_time, "\nwaiting time:", waiting_time,
+              "\nanswer score:", answer_score,
+              "(", cfg.WAITING_FACTOR, "for answer time and", cfg.ANSWER_TIME_FACTOR,
+              "for waiting time)\n")
+        print("complexity factor in final formula: ", complexity, end="\n\n")
+        print("attempt number: ", attempt, end="\n\n")
+        print("final score:", 100 / attempt *
+              answer_score * complexity, end="\n\n")
+
     return 100 / attempt * answer_score * complexity
 
 
@@ -45,12 +63,26 @@ def answer_summary(student, question, answer_number=-1):
         Расчет баллов для студента student, при ответе на вопрос question.
     """
 
-    q_complexity = 1 - (question.first_to_answer / question.total_answers),
-    waiting_time = student.data[question.day]['right'][answer_number][0]
-    time_of_answer = student.data[question.day]['right'][answer_number][1]
-    attempt = answer_number + 1 + student.data["wrong"] if \
-        answer_number != -1 else len(student.data['right']) + student.data['wrong']
+    # Выгрузка поля, отвечающего в поле данных студента `student` за вопрос `question`
+    datastore = json.loads(student.data)[question.day]
+
+    q_complexity = 1 - (question.first_to_answer / question.total_answers)
+    waiting_time = datastore["right"][answer_number][0]
+    time_of_answer = datastore["right"][answer_number][1]
+    attempt = answer_number + 1 + datastore["wrong"] if \
+        answer_number != -1 else len(datastore["right"]) + datastore["wrong"]
     good_answer_time = question.best_time_to_answer
+
+    if cfg.DEVELOP_MODE:
+        print("student: ", student.tg_login, end="\n\n")
+        print("question: ", question.text, end="\n\n")
+        print("question stat:\nfirst to answer:", question.first_to_answer, "\nall answers:",
+              question.total_answers, "\ncomplexity:", q_complexity, end="\n\n")
+        print("waiting time:", waiting_time, end="\n\n")
+        print("answer time:", time_of_answer, end="\n\n")
+        print("answer number:", answer_number, "\nright answers:", len(datastore["right"]),
+              "\nwrong answers:", datastore["wrong"], "attempt:", attempt, end="\n\n")
+        print("question good time:", question.best_time_to_answer, end="\n\n")
 
     return calculate_score(q_complexity, waiting_time, time_of_answer, attempt, good_answer_time)
 
@@ -61,14 +93,17 @@ def get_rating():
     """
 
     rating = dict()
+    questions = Question.objects()
 
     for student in Student.objects():
         summary = 0
 
-        for question in Question.objects():
+        for question in questions:
             for i in range(len(student.data[question.day]["right"])):
                 summary += answer_summary(student, question, i)
 
-        rating[student.tg_login] = summary
+        rating[student.tg_login] = summary / len(questions)
+    if cfg.DEVELOP_MODE:
+        print("rating:\n", rating, end="\n\n")
 
-    return sorted(rating.items(), key=lambda x: x[1])
+    return sorted(rating.items(), key=lambda x: x[1], reverse=True)

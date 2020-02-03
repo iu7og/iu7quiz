@@ -9,6 +9,7 @@
 from datetime import datetime
 from random import randint, shuffle
 
+import json
 import time
 import multiprocessing
 import telebot
@@ -16,6 +17,7 @@ import schedule
 import mongoengine
 
 import bot.config as cfg
+import bot.statistics as stat
 from bot.dbinstances import Student, Question
 
 bot = telebot.TeleBot(cfg.TOKEN)
@@ -96,6 +98,10 @@ def send_confirmation():
 
     for student in Student.objects():
         if student.status == "standby":
+            student.status = "is_ready"
+
+            # Время отправки сообщения записывается в поле студента (qtime_start)
+            student.qtime_start = int(time.time())
 
             markup = telebot.types.InlineKeyboardMarkup()
             markup.add(
@@ -108,6 +114,7 @@ def send_confirmation():
                 "Привет, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
                 reply_markup=markup
             )
+            student.save()
 
             update_status(student.user_id, "is_ready")
 
@@ -241,9 +248,9 @@ def query_handler_reg(call):
     if student.status == "registration":
         student.group = call.data
         student.status = "standby"
-        student.save()
 
         bot.send_message(call.message.chat.id, "✅ Вы успешно зарегистрированы в системе.")
+        student.save()
 
 
 @bot.callback_query_handler(lambda call: call.data == cfg.READY_BTN)
@@ -259,6 +266,19 @@ def query_handler_ready(call):
     if student.status == "is_ready":
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
+
+        # Вычисление номера вопроса
+        day = (len(questions) - 1) * 7 + datetime.today().weekday()
+
+        datastore = json.loads(student.data)
+        datastore = stat.ready_update(day, datastore, student.qtime_start)
+
+        # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
+        student.qtime_start = call.message.chat.time
+        # Обновление информации об ответах на вопрос у студента.
+        student.data = json.dumps(datastore)
+        student.status = "question"
+        student.save()
         shuffle(question.answers)
 
         message = f"❓ {question.text}\n\n"
@@ -271,13 +291,12 @@ def query_handler_ready(call):
             reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
         )
 
-        update_status(call.message.chat.id, "question")
-
 
 @bot.callback_query_handler(lambda call: call.data in cfg.ANSWERS_BTNS)
 def query_handler_questions(call):
     """
         Обработка нажатия inline-кнопок с выбором ответа студентом.
+        Обновление статистики после ответа на вопрос.
     """
 
     bot.answer_callback_query(call.id)
@@ -287,17 +306,30 @@ def query_handler_questions(call):
         questions = Question.objects(day__mod=(7, datetime.today().weekday()))
         question = questions[len(questions) - 1]
 
+        day = (len(questions) - 1) * 7 + datetime.today().weekday()
+        datastore = json.loads(student.data)
+
         # 4 - emoji + вариант ответа (перед самим ответом)
         student_answer = call.message.text.split("\n")[cfg.ANSWERS_BTNS[call.data] + 1][4:]
         correct_answer = question.answers[cfg.ANSWERS_BTNS[question.correct_answer] - 1]
 
         if student_answer == correct_answer:
+            datastore[day], question = stat.right_answer_handler(
+                datastore[day], question, call.message.chat.time, student.qtime_start)
             bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
+            datastore[day], question = stat.wrong_answer_handler(
+                datastore[day], question)
             bot.send_message(call.message.chat.id,
                              "❌ К сожалению, ответ неправильный, и он не будет засчитан.")
 
         update_status(call.message.chat.id, "standby")
+
+        student.qtime_start = 0
+        student.data = json.dumps(datastore)
+        student.status = "standby"
+        student.save()
+        question.save()
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.SCROLL_BTNS)
