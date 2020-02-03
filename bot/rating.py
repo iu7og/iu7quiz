@@ -100,8 +100,11 @@ def get_rating():
         datastore = json.loads(student.data)
 
         for question in questions:
-            for i in range(len(datastore[question.day]["right"])):
-                summary += answer_summary(student, question, i)
+            if len(datastore) > question.day:
+                for i in range(len(datastore[question.day]["right"])):
+                    summary += answer_summary(student, question, i)
+            else:
+                break
 
         rating[student.tg_login] = summary / len(questions) if summary != 0 else 0
     if cfg.DEVELOP_MODE:
