@@ -35,6 +35,10 @@ app = web.Application()
 
 
 async def handle(request):
+    """
+        61g 6@6y T@p3
+    """
+
     if request.match_info.get('token') == bot.token:
         request_body_dict = await request.json()
         update = telebot.types.Update.de_json(request_body_dict)
