@@ -110,7 +110,7 @@ def get_rating():
             rating[student.login] = summary / len(questions) if summary != 0 else 0
         else:
             i = 1
-            while (student.login + f"({i})" in rating)
+            while student.login + f"({i})" in rating:
                 i += 1
             rating[student.login + f"({i})"] = summary / len(questions) if summary != 0 else 0
     if cfg.DEVELOP_MODE:
