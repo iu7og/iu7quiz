@@ -9,13 +9,10 @@
 from datetime import datetime
 from random import randint, shuffle
 
-<<<<<<< HEAD
 import logging
 import ssl
 
-=======
 import json
->>>>>>> develop
 import time
 import multiprocessing
 import telebot
