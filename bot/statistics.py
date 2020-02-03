@@ -1,5 +1,5 @@
 """
-      ===== IU7QUIZ TELEGRAM BOT =====
+      ===== IU7QUIZ STATISTICS COLLECTOR =====
       Copyright (C) 2020 IU7OG Team.
 
       В данном модуле содержатся функции, обновляющие статистику студентов и вопросов
@@ -43,7 +43,7 @@ def right_answer_handler(question_object, question, time_now, start_time):
         Обработка статистики вопроса и данных студента при правильном ответе на вопрос.
     """
 
-    # Если ответ студент дал впервые, обновить статистику для вопроса
+    # Если ответ студент дал впервые, обновить статистику для вопроса.
     if len(question_object["right"]) == 1 and question_object["wrong"] == 0:
         question.first_to_answer += 1
         question.answers += 1
