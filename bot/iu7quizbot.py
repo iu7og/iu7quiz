@@ -31,6 +31,7 @@ def create_leaderboard_page(btn, prev_page=None):
     """
 
     students = rt.get_rating()
+    print(len(students))
 
     if prev_page is None:
         new_page_start = 0
@@ -104,7 +105,7 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("17:57").do(send_confirmation)
+    schedule.every().day.at("18:21").do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -161,15 +162,17 @@ def delete(message):
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
 
+    """
     for i in range(103):
         student = Student(
             user_id=randint(1, 999999),
-            login="user"+str(randint(1,999)),
+            login="user"+str(randint(1,99999999)),
             group=str(randint(1,9999999999)),
             status="standby"
         )
 
         student.save()
+    """
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -305,8 +308,6 @@ def query_handler_questions(call):
             bot.send_message(call.message.chat.id,
                              "❌ К сожалению, ответ неправильный, и он не будет засчитан.")
 
-        update_status(call.message.chat.id, "standby")
-
         student.qtime_start = 0
         student.data = json.dumps(datastore)
         student.status = "standby"
@@ -323,7 +324,9 @@ def query_handler_scroll(call):
 
     bot.answer_callback_query(call.id)
     new_page, is_border = create_leaderboard_page(call.data, call.message.text)
+    print(new_page)
 
+    print(Student.objects.count())
     if is_border:
         markup = telebot.types.InlineKeyboardMarkup()
         new_btn = "◀️" if call.data == "▶️" else "▶️"
