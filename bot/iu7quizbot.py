@@ -7,7 +7,9 @@
 """
 
 from datetime import datetime
-from random import randint, shuffle
+#from random import randint, shuffle
+from random import shuffle
+
 
 import json
 import time
@@ -18,6 +20,7 @@ import mongoengine
 
 import bot.config as cfg
 import bot.statistics as stat
+import bot.rating as rt
 from bot.dbinstances import Student, Question
 
 bot = telebot.TeleBot(cfg.TOKEN)
@@ -29,12 +32,7 @@ def create_leaderboard_page(btn, prev_page=None):
         Создание одной страницы лидерборда.
     """
 
-    # Позже заменить на вызов get_rating()
-    students_ = Student.objects()
-    students = []
-    for student in students_:
-        students.append((student.login, randint(1, 9999)))
-    students = sorted(students, key=lambda x: x[1])
+    students = rt.get_rating()
 
     if prev_page is None:
         new_page_start = 0
@@ -52,27 +50,12 @@ def create_leaderboard_page(btn, prev_page=None):
 
     for i, page in enumerate(page_list):
         curr_index = i + 1 + new_page_start
-        page_text += f"{medals.setdefault(curr_index, str(curr_index) + '.')}" + \
-            f"@{page[0]}. Рейтинг: {page[1]}\n"
+        page_text += f"{medals.setdefault(curr_index, str(curr_index) + '. ')}" + \
+            f"@{page[0]}. Рейтинг: {page[1]:.2f}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
     return page_text, is_border
-
-
-def update_status(user_id, status):
-    """
-        Обновление текущего статуса у студента. Возможные статусы:
-
-        1. registration - студент проходит процесс регистрации (выбор группы).
-        2. standby - режим ожидания, у студента нет активных вопросов на данный момент.
-        3. is_ready - бот ждёт подтверждения готовности ответить на вопрос.
-        4. question - вопрос выслан, ожидания нажатия кнопки с ответом.
-    """
-
-    student = Student.objects(user_id=user_id).first()
-    student.status = status
-    student.save()
 
 
 def create_markup(btns):
@@ -111,12 +94,12 @@ def send_confirmation():
             bot.send_message(student.user_id, "📝")
             bot.send_message(
                 student.user_id,
-                "Привет, готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+                "Доброго времени суток! " + \
+                    "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
                 reply_markup=markup
             )
-            student.save()
 
-            update_status(student.user_id, "is_ready")
+            student.save()
 
 
 def schedule_message():
@@ -124,7 +107,8 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every(1).minutes.do(send_confirmation)
+    schedule.every().day.at("10:00").do(send_confirmation)
+    #schedule.every(1).minute.do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -143,51 +127,54 @@ def authorization(message):
             status="registration"
         )
 
-        student.save()
         bot.send_message(
             message.chat.id,
             "💬 Укажите свою учебную группу: ",
             reply_markup=create_markup(cfg.GROUPS_BTNS)
         )
 
+        student.save()
+
     else:
         bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
 """
-    @bot.message_handler(commands=["unreg"])
-    def delete(message):
+@bot.message_handler(commands=["unreg"])
+def delete(message):
         #Отладочная комманда.
 
-        Question.objects().delete()
-        Student.objects().delete()
-        question = Question(
-            day=datetime.today().weekday(),
-            text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
-            answers=
-                ["Кострицкий Антон Александрович",
-                "Кострицкий Александр Сергеевич",
-                "Кострицкий Сергей Владимирович",
-                "Кострицкий Игорь Владимирович"],
-            correct_answer="B"
+    Question.objects().delete()
+    Student.objects().delete()
+    question = Question(
+        day=datetime.today().weekday(),
+        text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
+        answers=
+            ["Кострицкий Антон Александрович",
+            "Кострицкий Александр Сергеевич",
+            "Кострицкий Сергей Владимирович",
+            "Кострицкий Игорь Владимирович"],
+            correct_answer="B",
+            best_time_to_answer=5
         )
-        print(question.answers)
-        question.save()
 
-        print(message)
-        print(Student.objects(user_id=message.from_user.id))
-        Student.objects(user_id=message.from_user.id).delete()
-        print(Student.objects(user_id=message.from_user.id))
+    print(question.answers)
+    question.save()
 
-        for i in range(103):
-            student = Student(
-                user_id=randint(1, 999999),
-                login="user"+str(randint(1,999)),
-                group=str(randint(1,9999999999)),
-                status="standby"
-            )
+    print(message)
+    print(Student.objects(user_id=message.from_user.id))
+    Student.objects(user_id=message.from_user.id).delete()
+    print(Student.objects(user_id=message.from_user.id))
 
-            student.save()
+    for i in range(103):
+        student = Student(
+            user_id=randint(1, 999999),
+            login="user"+str(randint(1,10)),
+            group=str(randint(1,9999999999)),
+            status="standby"
+        )
+
+        student.save()
 """
 
 
@@ -246,10 +233,10 @@ def query_handler_reg(call):
     student = Student.objects(user_id=call.message.chat.id).first()
 
     if student.status == "registration":
+        bot.send_message(call.message.chat.id, "✅ Вы успешно зарегистрированы в системе.")
+
         student.group = call.data
         student.status = "standby"
-
-        bot.send_message(call.message.chat.id, "✅ Вы успешно зарегистрированы в системе.")
         student.save()
 
 
@@ -277,8 +264,6 @@ def query_handler_ready(call):
         student.qtime_start = int(time.time())
         # Обновление информации об ответах на вопрос у студента.
         student.data = json.dumps(datastore)
-        student.status = "question"
-        student.save()
         shuffle(question.answers)
 
         message = f"❓ {question.text}\n\n"
@@ -290,6 +275,9 @@ def query_handler_ready(call):
             message,
             reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
         )
+
+        student.status = "question"
+        student.save()
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.ANSWERS_BTNS)
@@ -323,11 +311,10 @@ def query_handler_questions(call):
             bot.send_message(call.message.chat.id,
                              "❌ К сожалению, ответ неправильный, и он не будет засчитан.")
 
-        update_status(call.message.chat.id, "standby")
-
         student.qtime_start = 0
         student.data = json.dumps(datastore)
         student.status = "standby"
+
         student.save()
         question.save()
 
