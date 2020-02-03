@@ -6,7 +6,7 @@
       базе данных (документы), используемые ботом и их поля.
 """
 
-from mongoengine import Document, IntField, StringField, ListField, FloatField
+from mongoengine import Document, IntField, StringField, ListField, FloatField, DictField
 
 
 class Student(Document):
