@@ -109,7 +109,7 @@ def update_queue():
 
     today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
-    for student in Studnet.objects():
+    for student in Student.objects():
         new_queue = list(map(lambda x: x.update({"days_left": x["days_left"] - 1}), student.queue))
         new_queue.insert(0, {"question_day": today_question_day, "days_left": 0})
 
