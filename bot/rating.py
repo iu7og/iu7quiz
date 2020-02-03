@@ -70,15 +70,15 @@ def answer_summary(student, question, answer_number=-1):
     waiting_time = datastore["right"][answer_number][0]
     time_of_answer = datastore["right"][answer_number][1]
 
-    if answer_number == -1 or answer_number >= len(datastore["right"]) - 1:
-        attempt = len(datastore["right"]) + len(datastore["wrong"])
-    else:
-        attempt = 1
-        answer_number += 1
-        while answer_number:
-            if attempt - 1 not in datastore["wrong"]:
-                answer_number -= 1
-            attempt += 1
+    if answer_number == -1 or answer_number > len(datastore["right"]) - 1:
+        answer_number = len(datastore["right"]) - 1
+
+    attempt = 1
+    answer_number += 1
+    while answer_number:
+        if attempt - 1 not in datastore["wrong"]:
+            answer_number -= 1
+        attempt += 1
 
     good_answer_time = question.best_time_to_answer
 
