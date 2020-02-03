@@ -95,11 +95,28 @@ def send_confirmation():
             bot.send_message(
                 student.user_id,
                 "Доброго времени суток! " + \
-                    "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+                    "Готовы ли вы сейчас ответить на вопросы по материалам лекций?",
                 reply_markup=markup
             )
 
             student.save()
+
+
+def update_queue():
+    """
+        big baby tape
+    """
+
+    today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
+
+    for student in Studnet.objects():
+        new_queue = list(map(lambda x: x["question_day"] -= 1, student.queue))
+        new_queue.insert(0, {"question_day": today_question_day, "days_left": 0}))
+
+        student.queue = new_queue
+        student.save()
+
+    send_confirmation()
 
 
 def schedule_message():
@@ -107,7 +124,7 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("10:00").do(send_confirmation)
+    schedule.every().day.at("10:00").do(update_queue)
     #schedule.every(1).minute.do(send_confirmation)
     while True:
         schedule.run_pending()
@@ -249,9 +266,10 @@ def query_handler_ready(call):
 
     bot.answer_callback_query(call.id)
     student = Student.objects(user_id=call.message.chat.id).first()
+    today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     if student.status == "is_ready":
-        questions = Question.objects(day__mod=(7, datetime.today().weekday()))
+        questions = Question.objects(day=today_question_day)
         question = questions[len(questions) - 1]
 
         # Вычисление номера вопроса
@@ -289,9 +307,10 @@ def query_handler_questions(call):
 
     bot.answer_callback_query(call.id)
     student = Student.objects(user_id=call.message.chat.id).first()
+    today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     if student.status == "question":
-        questions = Question.objects(day__mod=(7, datetime.today().weekday()))
+        questions = Question.objects(day=today_question_day)
         question = questions[len(questions) - 1]
 
         day = (len(questions) - 1) * 7 + datetime.today().weekday()
