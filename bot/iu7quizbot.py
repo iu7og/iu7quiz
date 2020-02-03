@@ -7,7 +7,9 @@
 """
 
 from datetime import datetime
-from random import randint, shuffle
+#from random import randint, shuffle
+from random import shuffle
+
 
 import json
 import time
@@ -92,7 +94,8 @@ def send_confirmation():
             bot.send_message(student.user_id, "📝")
             bot.send_message(
                 student.user_id,
-                "Доброго времени суток! Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+                "Доброго времени суток! " + \
+                    "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
                 reply_markup=markup
             )
 
