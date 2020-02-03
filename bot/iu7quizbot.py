@@ -162,17 +162,15 @@ def delete(message):
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
 
-    """
     for i in range(103):
         student = Student(
             user_id=randint(1, 999999),
-            login="user"+str(randint(1,99999999)),
+            login="user"+str(randint(1,10)),
             group=str(randint(1,9999999999)),
             status="standby"
         )
 
         student.save()
-    """
 
 
 @bot.message_handler(commands=["leaderboard"])
