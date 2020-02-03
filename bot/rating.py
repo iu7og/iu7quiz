@@ -66,11 +66,20 @@ def answer_summary(student, question, answer_number=-1):
     # Выгрузка поля, отвечающего в поле данных студента `student` за вопрос `question`
     datastore = json.loads(student.data)[question.day]
 
-    q_complexity = 1 - (question.first_to_answer / question.total_answers)
+    q_complexity = question.first_to_answer / question.total_answers
     waiting_time = datastore["right"][answer_number][0]
     time_of_answer = datastore["right"][answer_number][1]
-    attempt = answer_number + 1 + datastore["wrong"] if \
-        answer_number != -1 else len(datastore["right"]) + datastore["wrong"]
+
+    if answer_number == -1 or answer_number > len(datastore["right"]) - 1:
+        answer_number = len(datastore["right"]) - 1
+
+    attempt = 0
+    answer_number += 1
+    while answer_number:
+        if attempt not in datastore["wrong"]:
+            answer_number -= 1
+        attempt += 1
+
     good_answer_time = question.best_time_to_answer
 
     if cfg.DEVELOP_MODE:
@@ -97,12 +106,22 @@ def get_rating():
 
     for student in Student.objects():
         summary = 0
+        datastore = json.loads(student.data)
 
         for question in questions:
-            for i in range(len(student.data[question.day]["right"])):
-                summary += answer_summary(student, question, i)
+            if len(datastore) > question.day:
+                for i in range(len(datastore[question.day]["right"])):
+                    summary += answer_summary(student, question, i)
+            else:
+                break
 
-        rating[student.tg_login] = summary / len(questions)
+        if student.login not in rating:
+            rating[student.login] = summary / len(questions) if summary != 0 else 0
+        else:
+            i = 1
+            while student.login + f" ({i})" in rating:
+                i += 1
+            rating[student.login + f" ({i})"] = summary / len(questions) if summary != 0 else 0
     if cfg.DEVELOP_MODE:
         print("rating:\n", rating, end="\n\n")
 

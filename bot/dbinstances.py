@@ -6,7 +6,7 @@
       базе данных (документы), используемые ботом и их поля.
 """
 
-from mongoengine import Document, IntField, StringField, ListField
+from mongoengine import Document, IntField, StringField, ListField, FloatField
 
 
 class Student(Document):
@@ -20,7 +20,8 @@ class Student(Document):
     status = StringField(required=True, max_length=30)
     data = StringField(required=True, default="[]")
     queue = StringField(required=True, default="[]")
-    qtime_start = IntField(required=False)
+    qtime_start = FloatField(required=False)
+    waiting_time = FloatField(required=False)
 
 
 class Question(Document):
@@ -33,6 +34,6 @@ class Question(Document):
     text = StringField(required=True, max_length=300)
     answers = ListField(StringField(required=True, max_length=100))
     correct_answer = StringField(required=True, max_length=1)
-    best_time_to_answer = IntField(required=False)
-    total_answers = IntField(required=False)
-    first_to_answer = IntField(required=False)
+    best_time_to_answer = IntField(required=True)
+    total_answers = IntField(required=True, default=0)
+    first_to_answer = IntField(required=True, default=0)
