@@ -71,7 +71,7 @@ def answer_summary(student, question, answer_number=-1):
     time_of_answer = datastore["right"][answer_number][1]
 
     if answer_number == -1 or answer_number >= len(datastore["right"]) - 1:
-        attempt = len(datastore["right"]) + len(datastore["wrong"]) - 1
+        attempt = len(datastore["right"]) + len(datastore["wrong"])
     else:
         attempt = 1
         answer_number += 1
