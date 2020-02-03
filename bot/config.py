@@ -32,6 +32,7 @@ WAITING_FACTOR = 0.35
 ANSWER_TIME_FACTOR = 1 - WAITING_FACTOR
 ERR_DCRMNT_FACTOR = 0.2
 COMPLEXITY_FACTOR = 0.2
+SYMBOLS_PER_SECOND = 25
 
 # Коэффициент потери баллов за ожидание (кол-во часов,
 # когда из-за ожидания теряется 50% баллов за ожидание)
