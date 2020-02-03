@@ -39,7 +39,7 @@ def right_answer_handler(question_object, question, time_now, start_time, waitin
     """
 
     # Если ответ студент дал впервые, обновить статистику для вопроса.
-    if len(question_object["right"]) == 1 and len(question_object["wrong"]) == 0:
+    if len(question_object["right"]) == 0 and len(question_object["wrong"]) == 0:
         question.first_to_answer += 1
         question.total_answers += 1
     # Если ответ правильный, запомнить время ответа (время реакции уже имеется в данных).
