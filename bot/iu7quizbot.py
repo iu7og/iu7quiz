@@ -271,7 +271,7 @@ def query_handler_ready(call):
         day = (len(questions) - 1) * 7 + datetime.today().weekday()
 
         datastore = json.loads(student.data)
-        datastore = stat.ready_update(day, datastore, student.qtime_start)
+        datastore = stat.ready_update(datastore, day, student.qtime_start)
 
         # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
         student.qtime_start = call.message.chat.time
