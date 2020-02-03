@@ -124,7 +124,7 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every(30).minutes.do(send_confirmation)
+    schedule.every(1).minutes.do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
