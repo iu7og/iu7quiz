@@ -104,7 +104,7 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("17:35").do(send_confirmation)
+    schedule.every().day.at("17:38").do(send_confirmation)
     while True:
         schedule.run_pending()
         time.sleep(1)
