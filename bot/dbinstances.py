@@ -20,7 +20,7 @@ class Student(Document):
     status = StringField(required=True, max_length=30)
     data = StringField(required=True, default="[]")
     qtime_start = IntField(required=False)
-    wtime = IntField(required=False)
+    waiting_time = IntField(required=False)
 
 
 class Question(Document):
