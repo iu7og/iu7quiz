@@ -7,6 +7,10 @@ services:
     command: sh -c "PYTHONPATH='.' python bot/iu7quizbot.py"
     env_file:
       - credentials.env
+    volumes:
+      - ./certs:/certs
+    ports:
+      - "8443:8443"
     depends_on:
       - db
 
