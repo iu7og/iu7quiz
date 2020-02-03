@@ -76,7 +76,7 @@ def answer_summary(student, question, answer_number=-1):
         attempt = 1
         answer_number += 1
         while answer_number:
-            if attempt not in datastore["wrong"]:
+            if attempt - 1 not in datastore["wrong"]:
                 answer_number -= 1
             attempt += 1
 
