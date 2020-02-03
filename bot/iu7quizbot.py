@@ -84,7 +84,7 @@ def send_confirmation():
             student.status = "is_ready"
 
             # Время отправки сообщения записывается в поле студента (qtime_start)
-            student.qtime_start = int(time.time())
+            student.qtime_start = time.time()
 
             markup = telebot.types.InlineKeyboardMarkup()
             markup.add(
@@ -258,10 +258,10 @@ def query_handler_ready(call):
         day = (len(questions) - 1) * 7 + datetime.today().weekday()
 
         datastore = json.loads(student.data)
-        datastore = stat.ready_update(datastore, day, student.qtime_start)
+        datastore, student.waiting_time = stat.ready_update(datastore, day, student.qtime_start)
 
         # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
-        student.qtime_start = int(time.time())
+        student.qtime_start = time.time()
         # Обновление информации об ответах на вопрос у студента.
         student.data = json.dumps(datastore)
         shuffle(question.answers)
@@ -303,7 +303,8 @@ def query_handler_questions(call):
 
         if student_answer == correct_answer:
             datastore[day], question = stat.right_answer_handler(
-                datastore[day], question, int(time.time()), student.qtime_start)
+                datastore[day], question, time.time(), student.qtime_start,
+                student.waiting_time)
             bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             datastore[day], question = stat.wrong_answer_handler(
@@ -312,6 +313,7 @@ def query_handler_questions(call):
                              "❌ К сожалению, ответ неправильный, и он не будет засчитан.")
 
         student.qtime_start = 0
+        student.waiting_time = 0
         student.data = json.dumps(datastore)
         student.status = "standby"
 
