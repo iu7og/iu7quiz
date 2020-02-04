@@ -9,7 +9,6 @@
 from datetime import datetime
 from random import shuffle
 
-
 import json
 import time
 import multiprocessing
@@ -119,7 +118,7 @@ def update_queue():
 
     today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
 
-    for student in Student.objects():
+    for student in Student.objects(status__ne="registration"):
 
         if cfg.DEV_MODE_QUEUE:
             print(f"Daily update queue of user: {student.login}\nQueue before: {student.queue}")
@@ -160,10 +159,24 @@ def authorization(message):
     """
 
     if not Student.objects(user_id=message.chat.id):
+
+        questions_queue = list()
+        count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
+
+        if count_missed_questions > 0:
+            if datetime.today().hour > 10:
+                missed_questions = Question.objects(day__lte=count_missed_questions)
+            else:
+                missed_questions = Question.objects(day__lt=count_missed_questions)
+
+            for i, question in enumerate(missed_questions):
+                questions_queue.append({"question_day": question.day, "days_left": i})
+
         student = Student(
             user_id=message.chat.id,
             login=message.chat.username,
-            status="registration"
+            status="registration",
+            queue=questions_queue
         )
 
         bot.send_message(
