@@ -8,6 +8,7 @@
 """
 
 
+from datetime import datetime
 import json
 from math import exp
 import bot.config as cfg
@@ -104,26 +105,32 @@ def get_rating():
     rating = dict()
     questions = Question.objects()
 
+    # FIX_ME DAYS
+    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
+
     for student in Student.objects():
         summary = 0
         datastore = json.loads(student.data)
 
         for question in questions:
             if len(datastore) > question.day:
-                for i in range(len(datastore[question.day]["right"])):
+                number_of_answers = 2 if len(datastore[question.day]["right"]) > 2 \
+                    else len(datastore[question.day]["right"])
+                for i in range(number_of_answers):
                     summary += answer_summary(student, question, i)
             else:
                 break
 
         if student.login not in rating:
-            rating[student.login] = (summary / len(questions) if summary != 0 else 0,
+            rating[student.login] = (summary / (today_question_day + 1) if summary != 0 else 0,
                                      student.group)
         else:
             i = 1
             while student.login + f" ({i})" in rating:
                 i += 1
-            rating[student.login + f" ({i})"] = (summary / len(questions) if summary != 0 else 0,
-                                                 student.group)
+
+            rating[student.login + f" ({i})"] = (summary / (today_question_day + 1) if \
+                                                 summary != 0 else 0, student.group)
     if cfg.DEV_MODE_RATING:
         print("rating:\n", rating, end="\n\n")
 

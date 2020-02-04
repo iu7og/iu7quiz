@@ -18,17 +18,9 @@ def ready_update(datastore, day, start_time):
     # то добавить словари для сегодняшнего дня и всех предыдущих.
     while len(datastore) <= day:
         datastore.append(dict())
-
-    # В качестве объекта рассматривается словарь, относящийся к сегодняшнему дню.
-    question_object = datastore[day]
-
-    # Если словарь пуст (то есть был только что создан), то проинициализируем его.
-    if "wrong" not in question_object or "right" not in question_object:
-        question_object["wrong"] = list()
-        question_object["right"] = list()
-
-    # Если словарь уже был проинициализирован (то есть это не первый ответ на данный вопрос),
-    # то записать время реакции.
+        # Проинициализируем словарь.
+        datastore[-1]["right"] = list()
+        datastore[-1]["wrong"] = list()
 
     return datastore, (time.time() - start_time) / 3600
 
