@@ -164,7 +164,7 @@ def authorization(message):
         count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
         if count_missed_questions > 0:
-            questions_queue = [{"question_day": i, "days_left": 0}] \
+            questions_queue = [{"question_day": i, "days_left": 0} \
                 for i in range(count_missed_questions + 1)]
 
         student = Student(
