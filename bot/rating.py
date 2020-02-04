@@ -116,13 +116,17 @@ def get_rating():
                 break
 
         if student.login not in rating:
-            rating[student.login] = summary / len(questions) if summary != 0 else 0
+            rating[student.login] = (summary / len(questions) if summary != 0 else 0,
+                                     student.group)
         else:
             i = 1
             while student.login + f" ({i})" in rating:
                 i += 1
-            rating[student.login + f" ({i})"] = summary / len(questions) if summary != 0 else 0
+            rating[student.login + f" ({i})"] = (summary / len(questions) if summary != 0 else 0,
+                                                 student.group)
     if cfg.DEV_MODE_RATING:
         print("rating:\n", rating, end="\n\n")
 
-    return sorted(rating.items(), key=lambda x: x[1], reverse=True)
+    items = [(elem[0], elem[1][0], elem[1][1]) for elem in rating.items()]
+
+    return sorted(items, key=lambda x: x[1], reverse=True)

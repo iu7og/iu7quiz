@@ -348,8 +348,10 @@ def query_handler_questions(call):
         # внутри handler'ов.
         if student_answer == correct_answer:
             datastore[day], question, student.queue = stat.right_answer_handler(
-                datastore[day], question, (time.time(), student.qtime_start,
-                student.waiting_time), student.queue)
+                datastore[day],
+                question,
+                (time.time(), student.qtime_start, student.waiting_time),
+                student.queue)
             bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             datastore[day], question, student.queue = stat.wrong_answer_handler(
@@ -371,7 +373,7 @@ def query_handler_questions(call):
 
         # Если есть вопросы, запланированные на сегодня, то еще раз спросить о готовности
         # и задать вопрос.
-        if student.queue[0]["day_left"] <= 0:
+        if len(student.queue) > 0 and student.queue[0]["day_left"] <= 0:
             if cfg.DEV_MODE_QUEUE:
                 print("Asking one more question\n")
             send_single_confirmation(student)
