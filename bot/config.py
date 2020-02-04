@@ -6,6 +6,7 @@
 """
 
 from math import log
+from datetime import datetime
 import os
 
 # Конфигурация серверной части бота.
@@ -52,4 +53,8 @@ WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
 
 # Флаг отладочной печати (если True, то она будет)
-DEVELOP_MODE = False
+DEV_MODE_RATING = False
+DEV_MODE_QUEUE = True
+
+# Настройки времени
+FIRST_QUESTION_DAY = datetime(2020, 2, 5, 0, 0)

@@ -19,7 +19,7 @@ def waiting_score(time_in_hours):
         Расчет доли баллов за быстроту реакции.
     """
 
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("waiting time in hours:", time_in_hours, end="\n\n")
     return exp(-cfg.HALF_WAITING_FACTOR * time_in_hours)
 
@@ -30,7 +30,7 @@ def answer_speed_score(time_in_secs, good_time):
     """
 
     score = 9 * good_time / (time_in_secs + 9 * good_time)
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("answer time:", time_in_secs,
               "\ngood time:", good_time, "score:", score)
     return score
@@ -45,7 +45,7 @@ def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answe
                     cfg.ANSWER_TIME_FACTOR * answer_speed_score(answer_time, good_answer_time))
     complexity = (1 - cfg.COMPLEXITY_FACTOR * q_complexity)
 
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("answer time:", answer_time, "\nwaiting time:", waiting_time,
               "\nanswer score:", answer_score,
               "(", cfg.WAITING_FACTOR, "for answer time and", cfg.ANSWER_TIME_FACTOR,
@@ -66,14 +66,23 @@ def answer_summary(student, question, answer_number=-1):
     # Выгрузка поля, отвечающего в поле данных студента `student` за вопрос `question`
     datastore = json.loads(student.data)[question.day]
 
-    q_complexity = 1 - (question.first_to_answer / question.total_answers)
+    q_complexity = question.first_to_answer / question.total_answers
     waiting_time = datastore["right"][answer_number][0]
     time_of_answer = datastore["right"][answer_number][1]
-    attempt = answer_number + 1 + datastore["wrong"] if \
-        answer_number != -1 else len(datastore["right"]) + datastore["wrong"]
+
+    if answer_number == -1 or answer_number > len(datastore["right"]) - 1:
+        answer_number = len(datastore["right"]) - 1
+
+    attempt = 0
+    answer_number += 1
+    while answer_number:
+        if attempt not in datastore["wrong"]:
+            answer_number -= 1
+        attempt += 1
+
     good_answer_time = question.best_time_to_answer
 
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("student: ", student.tg_login, end="\n\n")
         print("question: ", question.text, end="\n\n")
         print("question stat:\nfirst to answer:", question.first_to_answer, "\nall answers:",
@@ -97,13 +106,27 @@ def get_rating():
 
     for student in Student.objects():
         summary = 0
+        datastore = json.loads(student.data)
 
         for question in questions:
-            for i in range(len(student.data[question.day]["right"])):
-                summary += answer_summary(student, question, i)
+            if len(datastore) > question.day:
+                for i in range(len(datastore[question.day]["right"])):
+                    summary += answer_summary(student, question, i)
+            else:
+                break
 
-        rating[student.tg_login] = summary / len(questions)
-    if cfg.DEVELOP_MODE:
+        if student.login not in rating:
+            rating[student.login] = (summary / len(questions) if summary != 0 else 0,
+                                     student.group)
+        else:
+            i = 1
+            while student.login + f" ({i})" in rating:
+                i += 1
+            rating[student.login + f" ({i})"] = (summary / len(questions) if summary != 0 else 0,
+                                                 student.group)
+    if cfg.DEV_MODE_RATING:
         print("rating:\n", rating, end="\n\n")
 
-    return sorted(rating.items(), key=lambda x: x[1], reverse=True)
+    items = [(elem[0], elem[1][0], elem[1][1]) for elem in rating.items()]
+
+    return sorted(items, key=lambda x: x[1], reverse=True)
