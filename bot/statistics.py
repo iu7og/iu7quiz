@@ -33,28 +33,57 @@ def ready_update(datastore, day, start_time):
     return datastore, (time.time() - start_time) / 3600
 
 
-def right_answer_handler(question_object, question, time_now, start_time, waiting_time):
+def right_answer_handler(question_object, question, times_cortege, queue):
     """
         Обработка статистики вопроса и данных студента при правильном ответе на вопрос.
     """
 
+    sum_len = len(question_object["right"]) + len(question_object["wrong"])
     # Если ответ студент дал впервые, обновить статистику для вопроса.
-    if len(question_object["right"]) == 0 and len(question_object["wrong"]) == 0:
+    if sum_len == 0:
         question.first_to_answer += 1
         question.total_answers += 1
-    # Если ответ правильный, запомнить время ответа (время реакции уже имеется в данных).
-    question_object["right"].append([waiting_time, time_now - start_time])
-    return question_object, question
+
+    # Если ответ правильный, запомнить время ответа.
+    question_object["right"].append(
+        [times_cortege[2], times_cortege[0] - times_cortege[1]])
+
+    # Обработка очереди.
+    # (p.s.: sum_len вычислялся по старой статистике (перед добавлением
+    # нового правильного ответа)).
+    if sum_len != 0 and len(question_object["wrong"]) > 0 and \
+        sum_len - question_object["wrong"][-1] < 2:
+        days_left = 2 + sum_len
+
+        i = 0
+        while i < len(queue) and queue[i]["days_left"] <= days_left:
+            i += 1
+
+        queue.insert(i, {"days_left": days_left, "question_day": question.day})
+    queue.pop(0)
+
+    return question_object, question, queue
 
 
-def wrong_answer_handler(question_object, question):
+def wrong_answer_handler(question_object, question, queue):
     """
         Обработка статистики вопроса и данных студента при неправильном ответе на вопрос.
     """
 
+    sum_len = len(question_object["right"]) + len(question_object["wrong"])
     # Если ответ на вопрос дан впервые, обновить статистику.
-    if len(question_object["right"]) == 0 and len(question_object["wrong"]) == 0:
+    if sum_len == 0:
         question.total_answers += 1
-    question_object["wrong"].append(
-        len(question_object["right"]) + len(question_object["wrong"]))
-    return question_object, question
+    question_object["wrong"].append(sum_len)
+
+    # Обработка очереди.
+    days_left = 2 + sum_len
+
+    i = 0
+    while i < len(queue) and queue[i]["days_left"] <= days_left:
+        i += 1
+
+    queue.insert(i, {"days_left": days_left, "question_day": question.day})
+    queue.pop(0)
+
+    return question_object, question, queue

@@ -6,7 +6,7 @@
       базе данных (документы), используемые ботом и их поля.
 """
 
-from mongoengine import Document, IntField, StringField, ListField, FloatField
+from mongoengine import Document, IntField, StringField, ListField, FloatField, DictField
 
 
 class Student(Document):
@@ -19,6 +19,7 @@ class Student(Document):
     group = StringField(required=True, max_length=200, default="None")
     status = StringField(required=True, max_length=30)
     data = StringField(required=True, default="[]")
+    queue = ListField(DictField(), default=[])
     qtime_start = FloatField(required=False)
     waiting_time = FloatField(required=False)
 
