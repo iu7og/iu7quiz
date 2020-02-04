@@ -107,6 +107,7 @@ def send_single_confirmation(student):
         "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
         reply_markup=markup
     )
+
     return student
 
 
@@ -308,11 +309,11 @@ def query_handler_questions(call):
         correct_answer = question.answers[cfg.ANSWERS_BTNS[question.correct_answer] - 1]
 
         # Очередь очищается от текущего вопроса (и обзаводится новым в некоторых случаях)
-        # внутри handler'ов. 
+        # внутри handler'ов.
         if student_answer == correct_answer:
             datastore[day], question, student.queue = stat.right_answer_handler(
-                datastore[day], question, time.time(), student.qtime_start,
-                student.queue, student.waiting_time)
+                datastore[day], question, [time.time(), student.qtime_start,
+                student.waiting_time], student.queue)
             bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             datastore[day], question, student.queue = stat.wrong_answer_handler(

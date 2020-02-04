@@ -33,7 +33,7 @@ def ready_update(datastore, day, start_time):
     return datastore, (time.time() - start_time) / 3600
 
 
-def right_answer_handler(question_object, question, time_now, start_time, waiting_time, queue):
+def right_answer_handler(question_object, question, times_array, queue):
     """
         Обработка статистики вопроса и данных студента при правильном ответе на вопрос.
     """
@@ -45,15 +45,15 @@ def right_answer_handler(question_object, question, time_now, start_time, waitin
         question.total_answers += 1
 
     # Если ответ правильный, запомнить время ответа.
-    question_object["right"].append([waiting_time, time_now - start_time])
+    question_object["right"].append([times_array[2], times_array[0] - times_array[1]])
 
-    # Обработка очередь.
+    # Обработка очереди.
     if sum_len != 0 and sum_len - question_object["wrong"][-1] < 2:
         days_left = 2 + sum_len
         i = 0
-        while i < len(queue) and queue[i]["day_left"] <= days_left:
+        while i < len(queue) and queue[i]["days_left"] <= days_left:
             i += 1
-        queue.insert(i, {"day_left": days_left, "question_day": question.day})
+        queue.insert(i, {"days_left": days_left, "question_day": question.day})
     queue.pop(0)
 
     return question_object, question, queue
@@ -73,9 +73,9 @@ def wrong_answer_handler(question_object, question, queue):
     # Обработка очереди.
     days_left = 2 + sum_len
     i = 0
-    while i < len(queue) and queue[i]["day_left"] <= days_left:
+    while i < len(queue) and queue[i]["days_left"] <= days_left:
         i += 1
-    queue.insert(i, {"day_left": days_left, "question_day": question.day})
+    queue.insert(i, {"days_left": days_left, "question_day": question.day})
     queue.pop(0)
 
     return question_object, question, queue
