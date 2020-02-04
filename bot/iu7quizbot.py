@@ -117,7 +117,7 @@ def update_queue():
         Функция добавления "вопроса дня".
     """
 
-    today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
+    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
 
     for student in Student.objects():
 
@@ -126,17 +126,15 @@ def update_queue():
 
         # Кол-во дней ожидания у вопросов, которые уже находятся в очереди, уменьшается на 1
         # (p.s.: Если кол-во дней ожидания <= 0, то вопрос должен быть отправлен сегодня).
-        new_queue = list(map(lambda x: x.update(
-            {"days_left": x["days_left"] - 1, "question_day": x["question_day"]}), student.queue))
+        for questions in student.queue:
+            questions["days_left"] -= 1
 
-        print(new_queue)
         # Вопрос дня добавляется на самое первое место
-        new_queue.insert(0, {"question_day": today_question_day, "days_left": 0})
+        student.queue.insert(0, {"question_day": today_question_day, "days_left": 0})
 
         if cfg.DEV_MODE_QUEUE:
-            print(f"Queue after: {new_queue}\n")
+            print(f"Queue after: {student.queue}\n")
 
-        student.queue = new_queue
         student.save()
 
     # Предложения ответить будут разосланы тем, кто свободен.
@@ -148,8 +146,8 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("10:00").do(update_queue)
-    schedule.every(1).minute.do(update_queue)
+    #schedule.every().day.at("10:00").do(update_queue)
+    schedule.every(1).hour.do(update_queue)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -180,6 +178,7 @@ def authorization(message):
         bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
+"""
 @bot.message_handler(commands=["unreg"])
 def delete(message):
         #Отладочная комманда.
@@ -206,7 +205,6 @@ def delete(message):
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
 
-    """
     for i in range(103):
         student = Student(
             user_id=randint(1, 999999),
@@ -216,7 +214,7 @@ def delete(message):
         )
 
         student.save()
-    """
+"""
 
 
 @bot.message_handler(commands=["leaderboard"])
