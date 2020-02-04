@@ -352,7 +352,9 @@ def query_handler_questions(call):
                 datastore[day],
                 question,
                 (time.time(), student.qtime_start, student.waiting_time),
-                student.queue)
+                student.queue
+            )
+            
             bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             datastore[day], question, student.queue = stat.wrong_answer_handler(
