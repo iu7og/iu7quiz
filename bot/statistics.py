@@ -22,12 +22,6 @@ def ready_update(datastore, day, start_time):
         datastore[-1]["right"] = list()
         datastore[-1]["wrong"] = list()
 
-    # В качестве объекта рассматривается словарь, относящийся к сегодняшнему дню.
-    question_object = datastore[day]
-
-    # Если словарь уже был проинициализирован (то есть это не первый ответ на данный вопрос),
-    # то записать время реакции.
-
     return datastore, (time.time() - start_time) / 3600
 
 

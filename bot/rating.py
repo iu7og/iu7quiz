@@ -8,6 +8,7 @@
 """
 
 
+from datetime import datetime
 import json
 from math import exp
 import bot.config as cfg
@@ -104,7 +105,7 @@ def get_rating():
     rating = dict()
     questions = Question.objects()
 
-    # FIXME DAYS
+    # FIX_ME DAYS
     today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
 
     for student in Student.objects():
