@@ -368,7 +368,7 @@ def query_handler_questions(call):
 
         if cfg.DEV_MODE_QUEUE:
             print(f"Queue of {student.login} after answering the question (after) " +
-                  ": {student.queue}", end='\n\n')
+                  f": {student.queue}", end='\n\n')
             print(f"Check update of the stat: {datastore[day]}\n")
 
         # Если есть вопросы, запланированные на сегодня, то еще раз спросить о готовности
