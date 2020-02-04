@@ -164,13 +164,10 @@ def authorization(message):
         count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
         if count_missed_questions > 0:
-            if datetime.today().hour > 10:
-                missed_questions = Question.objects(day__lte=count_missed_questions)
-            else:
-                missed_questions = Question.objects(day__lt=count_missed_questions)
-
-            for question in missed_questions:
-                questions_queue.append({"question_day": question.day, "days_left": 0})
+            list(map(
+                lambda x: questions_queue.append({"question_day": x, "days_left": 0}),
+                range(count_missed_questions + 1))
+            )
 
         student = Student(
             user_id=message.chat.id,
