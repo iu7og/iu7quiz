@@ -105,7 +105,7 @@ def send_single_confirmation(student):
     bot.send_message(
         student.user_id,
         "Доброго времени суток! " + \
-        "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+            "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
         reply_markup=markup
     )
 
@@ -348,8 +348,8 @@ def query_handler_questions(call):
         # внутри handler'ов.
         if student_answer == correct_answer:
             datastore[day], question, student.queue = stat.right_answer_handler(
-                datastore[day], question, [time.time(), student.qtime_start,
-                student.waiting_time], student.queue)
+                datastore[day], question, (time.time(), student.qtime_start,
+                student.waiting_time), student.queue)
             bot.send_message(call.message.chat.id, "✅ Верно! Ваш ответ засчитан.")
         else:
             datastore[day], question, student.queue = stat.wrong_answer_handler(
@@ -367,7 +367,7 @@ def query_handler_questions(call):
         if cfg.DEV_MODE_QUEUE:
             print(f"Queue of {student.login} after answering the question (after) " +
                   ": {student.queue}", end='\n\n')
-            print(f"Check update of the stat: {datastore[day]}\n"))
+            print(f"Check update of the stat: {datastore[day]}\n")
 
         # Если есть вопросы, запланированные на сегодня, то еще раз спросить о готовности
         # и задать вопрос.
