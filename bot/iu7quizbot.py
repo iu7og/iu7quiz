@@ -111,12 +111,29 @@ def send_single_confirmation(student):
     return student
 
 
+def update_queue():
+    """
+        big baby tape
+    """
+
+    today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
+
+    for student in Student.objects():
+        new_queue = list(map(lambda x: x.update({"days_left": x["days_left"] - 1}), student.queue))
+        new_queue.insert(0, {"question_day": today_question_day, "days_left": 0})
+
+        student.queue = new_queue
+        student.save()
+
+    send_confirmation()
+
+
 def schedule_message():
     """
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("10:00").do(send_confirmation)
+    schedule.every().day.at("10:00").do(update_queue)
     #schedule.every(1).minute.do(send_confirmation)
     while True:
         schedule.run_pending()
@@ -262,7 +279,6 @@ def query_handler_ready(call):
     if student.status == "is_ready":
         # Номер вопроса берется у первого вопроса в очереди
         day = student.queue[0]["question_day"]
-
         question = Question.objects(day=day).first()
 
         datastore = json.loads(student.data)

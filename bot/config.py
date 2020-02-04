@@ -6,6 +6,7 @@
 """
 
 from math import log
+from datetime import datetime
 import os
 
 # Конфигурация серверной части бота.
@@ -41,3 +42,6 @@ HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
 
 # Флаг отладочной печати (если True, то она будет)
 DEVELOP_MODE = False
+
+# Настройки времени
+FIRST_QUESTION_DAY = datetime(2020, 2, 4, 0, 0)
