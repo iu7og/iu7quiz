@@ -126,7 +126,10 @@ def update_queue():
 
         # Кол-во дней ожидания у вопросов, которые уже находятся в очереди, уменьшается на 1
         # (p.s.: Если кол-во дней ожидания <= 0, то вопрос должен быть отправлен сегодня).
-        new_queue = list(map(lambda x: x.update({"days_left": x["days_left"] - 1}), student.queue))
+        new_queue = list(map(lambda x: x.update(
+            {"days_left": x["days_left"] - 1, "question_day": x["question_day"]}), student.queue))
+            
+        print(new_queue)
         # Вопрос дня добавляется на самое первое место
         new_queue.insert(0, {"question_day": today_question_day, "days_left": 0})
 
