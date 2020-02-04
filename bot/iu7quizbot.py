@@ -7,7 +7,6 @@
 """
 
 from datetime import datetime
-#from random import randint, shuffle
 from random import shuffle
 
 
@@ -83,6 +82,8 @@ def send_confirmation():
         if student.status == "standby":
             student.status = "is_ready"
 
+            # Функция возвращает измененный объект студента (имитация передачи по ссылке).
+            # (p.s.: в функции записывается время отправления сообщения с вопросом о готовности).
             student = send_single_confirmation(student)
             student.save()
 
@@ -92,7 +93,7 @@ def send_single_confirmation(student):
         Отправка одному студенту сообщения с вопросом о готовности отвечать на вопрос.
     """
 
-    # Время отправки сообщения записывается в поле студента (qtime_start)
+    # Время отправки сообщения записывается в поле студента (qtime_start).
     student.qtime_start = time.time()
 
     markup = telebot.types.InlineKeyboardMarkup()
@@ -113,18 +114,22 @@ def send_single_confirmation(student):
 
 def update_queue():
     """
-        big baby tape
+        Функция добавления "вопроса дня".
     """
 
     today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     for student in Student.objects():
+        # Кол-во дней ожидания у вопросов, которые уже находятся в очереди, уменьшается на 1
+        # (p.s.: Если кол-во дней ожидания <= 0, то вопрос должен быть отправлен сегодня).
         new_queue = list(map(lambda x: x.update({"days_left": x["days_left"] - 1}), student.queue))
+        # Вопрос дня добавляется на самое первое место
         new_queue.insert(0, {"question_day": today_question_day, "days_left": 0})
 
         student.queue = new_queue
         student.save()
 
+    # Предложения ответить будут разосланы тем, кто свободен.
     send_confirmation()
 
 
@@ -277,7 +282,7 @@ def query_handler_ready(call):
     student = Student.objects(user_id=call.message.chat.id).first()
 
     if student.status == "is_ready":
-        # Номер вопроса берется у первого вопроса в очереди
+        # Номер вопроса берется у первого вопроса в очереди.
         day = student.queue[0]["question_day"]
         question = Question.objects(day=day).first()
 
@@ -339,17 +344,18 @@ def query_handler_questions(call):
 
         question.save()
 
-        # Если есть вопросы, запланированные на сегодня, то еще раз спрашиваем о готовности
-        # и задаем вопрос.
+        # Обновить статистику.
+        student.data = json.dumps(datastore)
+        student.qtime_start = 0
+        student.waiting_time = 0
+
+        # Если есть вопросы, запланированные на сегодня, то еще раз спросить о готовности
+        # и задать вопрос.
         if student.queue[0]["day_left"] <= 0:
             send_single_confirmation(student)
             student.status = "is_ready"
         else:
             student.status = "standby"
-
-        student.data = json.dumps(datastore)
-        student.qtime_start = 0
-        student.waiting_time = 0
 
         student.save()
 

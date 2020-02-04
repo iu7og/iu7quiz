@@ -48,6 +48,8 @@ def right_answer_handler(question_object, question, times_array, queue):
     question_object["right"].append([times_array[2], times_array[0] - times_array[1]])
 
     # Обработка очереди.
+    # (p.s.: sum_len вычислялся по старой статистике (перед добавлением
+    # нового правильного ответа)).
     if sum_len != 0 and sum_len - question_object["wrong"][-1] < 2:
         days_left = 2 + sum_len
         i = 0
