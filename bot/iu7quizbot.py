@@ -50,7 +50,7 @@ def create_leaderboard_page(btn, prev_page=None):
     for i, page in enumerate(page_list):
         curr_index = i + 1 + new_page_start
         page_text += f"{medals.setdefault(curr_index, str(curr_index) + '. ')}" + \
-            f"@{page[0]}. Рейтинг: {page[1]:.2f}\n"
+            f"@{page[0]} ({page[2]}). Рейтинг: {page[1]:.2f}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
@@ -117,7 +117,7 @@ def update_queue():
         Функция добавления "вопроса дня".
     """
 
-    today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
+    today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     for student in Student.objects():
 
@@ -146,7 +146,7 @@ def schedule_message():
     """
 
     schedule.every().day.at("10:00").do(update_queue)
-    #schedule.every(1).minute.do(send_confirmation)
+    schedule.every(1).minute.do(update_queue)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -177,7 +177,6 @@ def authorization(message):
         bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
 
 
-"""
 @bot.message_handler(commands=["unreg"])
 def delete(message):
         #Отладочная комманда.
@@ -185,7 +184,7 @@ def delete(message):
     Question.objects().delete()
     Student.objects().delete()
     question = Question(
-        day=datetime.today().weekday(),
+        day=0,
         text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
         answers=
             ["Кострицкий Антон Александрович",
@@ -204,6 +203,7 @@ def delete(message):
     Student.objects(user_id=message.from_user.id).delete()
     print(Student.objects(user_id=message.from_user.id))
 
+    """
     for i in range(103):
         student = Student(
             user_id=randint(1, 999999),
@@ -213,7 +213,7 @@ def delete(message):
         )
 
         student.save()
-"""
+    """
 
 
 @bot.message_handler(commands=["leaderboard"])
