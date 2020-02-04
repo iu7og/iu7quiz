@@ -45,12 +45,14 @@ def right_answer_handler(question_object, question, times_cortege, queue):
         question.total_answers += 1
 
     # Если ответ правильный, запомнить время ответа.
-    question_object["right"].append([times_cortege[2], times_cortege[0] - times_cortege[1]])
+    question_object["right"].append(
+        [times_cortege[2], times_cortege[0] - times_cortege[1]])
 
     # Обработка очереди.
     # (p.s.: sum_len вычислялся по старой статистике (перед добавлением
     # нового правильного ответа)).
-    if sum_len != 0 and sum_len - question_object["wrong"][-1] < 2:
+    if sum_len != 0 and len(question_object["wrong"]) > 0 and \
+        sum_len - question_object["wrong"][-1] < 2:
         days_left = 2 + sum_len
 
         i = 0
