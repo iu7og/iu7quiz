@@ -169,8 +169,8 @@ def authorization(message):
             else:
                 missed_questions = Question.objects(day__lt=count_missed_questions)
 
-            for i, question in enumerate(missed_questions):
-                questions_queue.append({"question_day": question.day, "days_left": i})
+            for question in missed_questions:
+                questions_queue.append({"question_day": question.day, "days_left": 0})
 
         student = Student(
             user_id=message.chat.id,
