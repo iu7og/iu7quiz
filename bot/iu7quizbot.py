@@ -7,6 +7,7 @@
 """
 
 from datetime import datetime
+from functools import reduce
 from random import shuffle
 
 import json
@@ -164,9 +165,10 @@ def authorization(message):
         count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
         if count_missed_questions > 0:
-            list(map(
-                lambda x: questions_queue.append({"question_day": x, "days_left": 0}),
-                range(count_missed_questions + 1))
+            questions_queue = reduce(
+                lambda x, y: x + [{"question_day": y, "days_left": 0}],
+                range(count_missed_questions + 1),
+                []
             )
 
         student = Student(
