@@ -7,8 +7,8 @@
 """
 
 from datetime import datetime
+from functools import reduce
 from random import shuffle
-
 
 import json
 import time
@@ -119,7 +119,7 @@ def update_queue():
 
     today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
 
-    for student in Student.objects():
+    for student in Student.objects(status__ne="registration"):
 
         if cfg.DEV_MODE_QUEUE:
             print(f"Daily update queue of user: {student.login}\nQueue before: {student.queue}")
@@ -160,10 +160,22 @@ def authorization(message):
     """
 
     if not Student.objects(user_id=message.chat.id):
+
+        questions_queue = list()
+        count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
+
+        if count_missed_questions > 0:
+            questions_queue = reduce(
+                lambda x, y: x + [{"question_day": y, "days_left": 0}],
+                range(count_missed_questions + 1),
+                []
+            )
+
         student = Student(
             user_id=message.chat.id,
             login=message.chat.username,
-            status="registration"
+            status="registration",
+            queue=questions_queue
         )
 
         bot.send_message(
