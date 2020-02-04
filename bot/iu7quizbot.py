@@ -104,8 +104,8 @@ def send_single_confirmation(student):
     bot.send_message(student.user_id, "📝")
     bot.send_message(
         student.user_id,
-        "Доброго времени суток! " + \
-            "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+        "Доброго времени суток! " +
+        "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
         reply_markup=markup
     )
 
@@ -146,7 +146,7 @@ def schedule_message():
         Планировщик сообщений.
     """
 
-    #schedule.every().day.at("10:00").do(update_queue)
+    # schedule.every().day.at("10:00").do(update_queue)
     schedule.every(1).hour.do(update_queue)
     while True:
         schedule.run_pending()
@@ -251,7 +251,20 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        bot.send_message(message.chat.id, "Тут напишем про себя и про преподавателей.")
+        help_msg = "📮 *IU7QuizBot* by IU7OG Team 📮\n\n" \
+            "Данный бот предназаначен для закрпеления студентами лекционного материала " \
+            "по курсу *Программирование на Си* в *МГТУ им. Н.Э. Баумана*, " \
+            "на кафедре *ИУ7*.\n\n" \
+            "🛠 Разработчики:\n" \
+            "📍 Романов Алексей @mRRvz\n" \
+            "📍 Пересторонин Павел @Justarone\n" \
+            "📍 Кононенко Сергей @hackfeed\n" \
+            "📍 Нитенко Михаил @VASYA\_VAN\n" \
+            "📍 Якуба Дмитрий @xGULZAx\n\n" \
+            "🔱 Все права защищены. 2020 год.\n" \
+            "📡 [iu7og.design](https://iu7og.design) 📡\n"
+
+        bot.send_message(message.chat.id, help_msg, parse_mode="markdown")
 
 
 # @bot.message_handler(func=lambda message: True)
