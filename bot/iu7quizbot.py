@@ -120,11 +120,18 @@ def update_queue():
     today_question_day = (datetime.datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     for student in Student.objects():
+
+        if cfg.DEV_MODE_QUEUE:
+            print(f"Daily update queue of user: {student.login}\nQueue before: {student.queue}")
+
         # Кол-во дней ожидания у вопросов, которые уже находятся в очереди, уменьшается на 1
         # (p.s.: Если кол-во дней ожидания <= 0, то вопрос должен быть отправлен сегодня).
         new_queue = list(map(lambda x: x.update({"days_left": x["days_left"] - 1}), student.queue))
         # Вопрос дня добавляется на самое первое место
         new_queue.insert(0, {"question_day": today_question_day, "days_left": 0})
+
+        if cfg.DEV_MODE_QUEUE:
+            print(f"Queue after: {new_queue}\n")
 
         student.queue = new_queue
         student.save()
@@ -286,6 +293,10 @@ def query_handler_ready(call):
         day = student.queue[0]["question_day"]
         question = Question.objects(day=day).first()
 
+        if cfg.DEV_MODE_QUEUE:
+            print(f"Queue of {student.login} after ready confirmation: {student.queue}",
+                  f"Got day {day}", sep='\n', end='\n\n')
+
         datastore = json.loads(student.data)
         datastore, student.waiting_time = stat.ready_update(datastore, day, student.qtime_start)
 
@@ -323,6 +334,10 @@ def query_handler_questions(call):
         day = student.queue[0]["question_day"]
         question = Question.objects(day=day).first()
 
+        if cfg.DEV_MODE_QUEUE:
+            print(f"Queue of {student.login} after answering the question (before)" +
+                  ": {student.queue}", f"Got day {day}", sep='\n', end='\n\n')
+
         datastore = json.loads(student.data)
 
         # 4 - emoji + вариант ответа (перед самим ответом)
@@ -349,12 +364,21 @@ def query_handler_questions(call):
         student.qtime_start = 0
         student.waiting_time = 0
 
+        if cfg.DEV_MODE_QUEUE:
+            print(f"Queue of {student.login} after answering the question (after) " +
+                  ": {student.queue}", end='\n\n')
+            print(f"Check update of the stat: {datastore[day]}\n"))
+
         # Если есть вопросы, запланированные на сегодня, то еще раз спросить о готовности
         # и задать вопрос.
         if student.queue[0]["day_left"] <= 0:
+            if cfg.DEV_MODE_QUEUE:
+                print("Asking one more question\n")
             send_single_confirmation(student)
             student.status = "is_ready"
         else:
+            if cfg.DEV_MODE_QUEUE:
+                print("No more questions for today")
             student.status = "standby"
 
         student.save()

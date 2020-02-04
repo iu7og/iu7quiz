@@ -19,7 +19,7 @@ def waiting_score(time_in_hours):
         Расчет доли баллов за быстроту реакции.
     """
 
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("waiting time in hours:", time_in_hours, end="\n\n")
     return exp(-cfg.HALF_WAITING_FACTOR * time_in_hours)
 
@@ -30,7 +30,7 @@ def answer_speed_score(time_in_secs, good_time):
     """
 
     score = 9 * good_time / (time_in_secs + 9 * good_time)
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("answer time:", time_in_secs,
               "\ngood time:", good_time, "score:", score)
     return score
@@ -45,7 +45,7 @@ def calculate_score(q_complexity, waiting_time, answer_time, attempt, good_answe
                     cfg.ANSWER_TIME_FACTOR * answer_speed_score(answer_time, good_answer_time))
     complexity = (1 - cfg.COMPLEXITY_FACTOR * q_complexity)
 
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("answer time:", answer_time, "\nwaiting time:", waiting_time,
               "\nanswer score:", answer_score,
               "(", cfg.WAITING_FACTOR, "for answer time and", cfg.ANSWER_TIME_FACTOR,
@@ -82,7 +82,7 @@ def answer_summary(student, question, answer_number=-1):
 
     good_answer_time = question.best_time_to_answer
 
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("student: ", student.tg_login, end="\n\n")
         print("question: ", question.text, end="\n\n")
         print("question stat:\nfirst to answer:", question.first_to_answer, "\nall answers:",
@@ -122,7 +122,7 @@ def get_rating():
             while student.login + f" ({i})" in rating:
                 i += 1
             rating[student.login + f" ({i})"] = summary / len(questions) if summary != 0 else 0
-    if cfg.DEVELOP_MODE:
+    if cfg.DEV_MODE_RATING:
         print("rating:\n", rating, end="\n\n")
 
     return sorted(rating.items(), key=lambda x: x[1], reverse=True)

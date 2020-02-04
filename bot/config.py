@@ -41,7 +41,8 @@ HALF_WAITING_HOURS = 12
 HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
 
 # Флаг отладочной печати (если True, то она будет)
-DEVELOP_MODE = False
+DEV_MODE_RATING = False
+DEV_MODE_QUEUE = True
 
 # Настройки времени
 FIRST_QUESTION_DAY = datetime(2020, 2, 4, 0, 0)
