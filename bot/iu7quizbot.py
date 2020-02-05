@@ -9,9 +9,12 @@
 from datetime import datetime
 from random import shuffle
 
+<<<<<<< HEAD
 import logging
 import ssl
 
+=======
+>>>>>>> develop
 import json
 import time
 import multiprocessing
@@ -151,7 +154,7 @@ def update_queue():
 
     today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
 
-    for student in Student.objects():
+    for student in Student.objects(status__ne="registration"):
 
         if cfg.DEV_MODE_QUEUE:
             print(f"Daily update queue of user: {student.login}\nQueue before: {student.queue}")
@@ -192,10 +195,19 @@ def authorization(message):
     """
 
     if not Student.objects(user_id=message.chat.id):
+
+        questions_queue = list()
+        count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
+
+        if count_missed_questions > 0:
+            questions_queue = [{"question_day": i, "days_left": 0} \
+                for i in range(count_missed_questions + 1)]
+
         student = Student(
             user_id=message.chat.id,
             login=message.chat.username,
-            status="registration"
+            status="registration",
+            queue=questions_queue
         )
 
         bot.send_message(
@@ -283,7 +295,20 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        bot.send_message(message.chat.id, "Тут напишем про себя и про преподавателей.")
+        help_msg = "📮 *IU7QuizBot* by IU7OG Team 📮\n\n" \
+            "Данный бот предназаначен для закрпеления студентами лекционного материала " \
+            "по курсу *Программирование на Си* в *МГТУ им. Н.Э. Баумана*, " \
+            "на кафедре *ИУ7*.\n\n" \
+            "🛠 Разработчики:\n" \
+            "📍 Романов Алексей @mRRvz\n" \
+            "📍 Пересторонин Павел @Justarone\n" \
+            "📍 Кононенко Сергей @hackfeed\n" \
+            "📍 Нитенко Михаил @VASYA\_VAN\n" \
+            "📍 Якуба Дмитрий @xGULZAx\n\n" \
+            "🔱 Все права защищены. 2020 год.\n" \
+            "📡 [iu7og.design](https://iu7og.design) 📡\n"
+
+        bot.send_message(message.chat.id, help_msg, parse_mode="markdown")
 
 
 # @bot.message_handler(func=lambda message: True)

@@ -57,4 +57,4 @@ DEV_MODE_RATING = False
 DEV_MODE_QUEUE = True
 
 # Настройки времени
-FIRST_QUESTION_DAY = datetime(2020, 2, 5, 0, 0)
+FIRST_QUESTION_DAY = datetime(2020, 2, 5, 10, 0)
