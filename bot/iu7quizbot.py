@@ -302,12 +302,53 @@ def help_message(message):
         bot.send_message(message.chat.id, help_msg, parse_mode="markdown")
 
 
-# @bot.message_handler(func=lambda message: True)
-# def echo_message(message):
-#     """
-#         Задать вопрос преподавателю во время лекции.
-#     """
-#     bot.reply_to(message, "📮 Ваш вопрос принят!")
+@bot.message_handler(commands=["question"])
+def live_question_handler(message):
+    """
+        Задать вопрос преподавателю во время лекции.
+    """
+
+    if student := Student.objects(user_id=message.chat.id):
+        student = student.first()
+
+        if student.status == "standby":
+            time_delta = datetime.today() - cfg.FIRST_CLASS_DAY
+            if time_delta.seconds <= cfg.CLASS_DURATION and time_delta.days % cfg.CLASS_OFFSET == 0:
+                if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
+                    student.last_live_q = time.time()
+                    student.status = "live_question"
+
+                    student.save()
+
+                    bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
+                else:
+                    spam_time = int(cfg.LIVE_Q_DELAY - (time.time() - student.last_live_q))
+                    time_msg = f"⏰ Подождите {spam_time} секунд прежде чем еще раз задавать вопрос."
+                    bot.send_message(message.chat.id, time_msg)
+            else:
+                bot.send_message(
+                    message.chat.id, "⛔ Вопросы можно задавать только во время лекции.")
+        elif student.status == "live_question":
+            bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
+        else:
+            bot.send_message(
+                message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
+
+
+@bot.message_handler(
+    func=lambda msg: Student.objects(user_id=msg.chat.id).first().status == "live_question")
+def question_sender(msg):
+    """
+        Пересылка вопроса преподавателю.
+    """
+
+    student = Student.objects(user_id=msg.chat.id).first()
+
+    bot.send_message(cfg.LECTOR_ID, msg.text)
+    bot.send_message(msg.chat.id, "📮 Ваш вопрос принят!")
+
+    student.status = "standby"
+    student.save()
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.GROUPS_BTNS)
