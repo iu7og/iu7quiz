@@ -287,12 +287,14 @@ def live_question_handler(message):
 
     if Student.objects(user_id=message.chat.id):
         student = Student.objects(user_id=message.chat.id).first()
+
         if student.status == "standby":
             time_delta = datetime.today() - cfg.FIRST_CLASS
             if time_delta.seconds <= 5400 and time_delta.days % cfg.CLASS_OFFSET == 0:
                 if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
                     student.last_live_q = time.time()
                     student.status = "question"
+
                     student.save()
 
                     bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")

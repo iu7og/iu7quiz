@@ -29,7 +29,7 @@ LB_PAGE_SIZE = 10
 LECTOR_ID = "ID"
 LIVE_Q_DELAY = 60
 # Здесь указывается дата первой лекции, от нее ведется отсчет
-FIRST_CLASS = datetime(2020, 2, 6, 21, 37) 
+FIRST_CLASS_DAY = datetime(2020, 2, 11, 8, 30)
 CLASS_OFFSET = 14 # Время в днях до следующей лекции
 
 # Конфигурация рейтинговой системы.
