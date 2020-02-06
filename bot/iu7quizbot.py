@@ -299,7 +299,7 @@ def live_question_handler(message):
         Задать вопрос преподавателю во время лекции.
     """
 
-    if (student := Student.objects(user_id=message.chat.id)):
+    if student := Student.objects(user_id=message.chat.id):
         student = student.first()
 
         if student.status == "standby":
