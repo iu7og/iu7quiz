@@ -238,7 +238,8 @@ def show_leaderboard(message):
 
     student = Student.objects(user_id=message.from_user.id).first()
 
-    if student.status == "standby":
+    if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
+        student.lb_timeout = int(time.time())
         page = create_leaderboard_page(cfg.SCROLL_BTNS[1])
 
         if Student.objects.count() > cfg.LB_PAGE_SIZE:
@@ -253,6 +254,13 @@ def show_leaderboard(message):
             bot.send_message(message.chat.id, page, reply_markup=markup)
         else:
             bot.send_message(message.chat.id, page)
+
+    elif student.status == "standby":
+        bot.send_message(message.chat.id, "Вы недавно вызывали лидерборд. Повторите через" +
+                         f" {cfg.LB_TIMEOUT - (int(time.time()) - student.lb_timeout)}")
+
+    else:
+        bot.send_message(message.chat.id, "Пожалуйста, сначала ответьте на мои вопросы...")
 
 
 @bot.message_handler(commands=["help"])

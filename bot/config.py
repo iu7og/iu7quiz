@@ -46,3 +46,4 @@ DEV_MODE_QUEUE = True
 
 # Настройки времени
 FIRST_QUESTION_DAY = datetime(2020, 2, 5, 10, 0)
+LB_TIMEOUT = 20

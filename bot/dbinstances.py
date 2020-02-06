@@ -21,6 +21,7 @@ class Student(Document):
     data = StringField(required=True, default="[]")
     queue = ListField(DictField(), default=[])
     qtime_start = FloatField(required=False)
+    lb_timeout = FloatField(required=True, default=0)
     waiting_time = FloatField(required=False)
 
 
