@@ -256,11 +256,12 @@ def show_leaderboard(message):
             bot.send_message(message.chat.id, page)
 
     elif student.status == "standby":
-        bot.send_message(message.chat.id, "⛔ Вы недавно вызывали лидерборд. Повторите через" +
+        bot.send_message(message.chat.id, "⏰ Вы недавно вызывали лидерборд. Повторите через" +
                          f" {cfg.LB_TIMEOUT - (int(time.time()) - student.lb_timeout)} секунд.")
 
     else:
-        bot.send_message(message.chat.id, "Пожалуйста, сначала ответьте на мои вопросы...")
+        bot.send_message(message.chat.id,
+                         "⛔️ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
 @bot.message_handler(commands=["help"])
