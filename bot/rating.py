@@ -8,7 +8,6 @@
 """
 
 
-from datetime import datetime
 import json
 from math import exp
 import bot.config as cfg
