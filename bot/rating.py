@@ -105,9 +105,6 @@ def get_rating():
     rating = dict()
     questions = Question.objects()
 
-    # FIX_ME DAYS
-    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
-
     for student in Student.objects():
         summary = 0
         datastore = json.loads(student.data)
@@ -122,15 +119,15 @@ def get_rating():
                 break
 
         if student.login not in rating:
-            rating[student.login] = (summary / (today_question_day + 1) if summary != 0 else 0,
+            rating[student.login] = (summary if summary != 0 else 0,
                                      student.group)
         else:
             i = 1
             while student.login + f" ({i})" in rating:
                 i += 1
 
-            rating[student.login + f" ({i})"] = (summary / (today_question_day + 1) if \
-                                                 summary != 0 else 0, student.group)
+            rating[student.login + f" ({i})"] = (summary if summary != 0 else 0,
+                                                 student.group)
     if cfg.DEV_MODE_RATING:
         print("rating:\n", rating, end="\n\n")
 
