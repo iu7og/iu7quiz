@@ -293,7 +293,7 @@ def live_question_handler(message):
             if time_delta.seconds <= cfg.CLASS_DURATION and time_delta.days % cfg.CLASS_OFFSET == 0:
                 if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
                     student.last_live_q = time.time()
-                    student.status = "question"
+                    student.status = "live_question"
 
                     student.save()
 
@@ -305,7 +305,7 @@ def live_question_handler(message):
             else:
                 bot.send_message(
                     message.chat.id, "⛔ Вопросы можно задавать только во время лекции.")
-        elif student.status == "question":
+        elif student.status == "live_question":
             bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
         else:
             bot.send_message(
@@ -313,7 +313,7 @@ def live_question_handler(message):
 
 
 @bot.message_handler(
-    func=lambda msg: Student.objects(user_id=msg.chat.id).first().status == "question")
+    func=lambda msg: Student.objects(user_id=msg.chat.id).first().status == "live_question")
 def question_sender(msg):
     """
         Пересылка вопроса преподавателю.
