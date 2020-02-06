@@ -290,19 +290,19 @@ def live_question_handler(message):
         if student.status == "standby":
             if (datetime.today() - cfg.F_CLASS).seconds % (cfg.CLASS_OFFSET * 24 * 3600) <= 5400:
                 if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
-                    bot.send_message(cfg.LECTOR_ID, message.text[7:])
+                    bot.send_message(cfg.LECTOR_ID, message.text[10:])
                     student.last_live_q = time.time()
                     student.save()
 
-                    bot.send_message(message, "📮 Ваш вопрос принят!")
+                    bot.send_message(message.chat.id, "📮 Ваш вопрос принят!")
                 else:
                     spam_time = int(cfg.LIVE_Q_DELAY - (time.time() - student.last_live_q))
                     time_msg = f"⏰ Подождите {spam_time} секунд прежде чем еще раз задавать вопрос."
                     bot.send_message(message.chat.id, time_msg)
             else:
-                bot.send_message(message, "⛔ Вопросы можно задавать только во время лекции.")
+                bot.send_message(message.chat.id, "⛔ Вопросы можно задавать только во время лекции.")
         else:
-            bot.send_message(message, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
+            bot.send_message(message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.GROUPS_BTNS)
