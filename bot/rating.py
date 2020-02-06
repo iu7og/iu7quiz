@@ -119,15 +119,13 @@ def get_rating():
                 break
 
         if student.login not in rating:
-            rating[student.login] = (summary if summary != 0 else 0,
-                                     student.group)
+            rating[student.login] = (summary if summary != 0 else 0, student.group)
         else:
             i = 1
             while student.login + f" ({i})" in rating:
                 i += 1
 
-            rating[student.login + f" ({i})"] = (summary if summary != 0 else 0,
-                                                 student.group)
+            rating[student.login + f" ({i})"] = (summary if summary != 0 else 0, student.group)
     if cfg.DEV_MODE_RATING:
         print("rating:\n", rating, end="\n\n")
 
