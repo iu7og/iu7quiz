@@ -288,7 +288,8 @@ def live_question_handler(message):
     if Student.objects(user_id=message.chat.id):
         student = Student.objects(user_id=message.chat.id).first()
         if student.status == "standby":
-            if (datetime.today() - cfg.F_CLASS).seconds % (cfg.CLASS_OFFSET * 24 * 3600) <= 5400:
+            time_delta = datetime.today() - cfg.F_CLASS
+            if time_delta.seconds <= 5400 and time_delta.days % 14 == 0:
                 if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
                     bot.send_message(cfg.LECTOR_ID, message.text[10:])
                     student.last_live_q = time.time()
