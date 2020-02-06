@@ -299,30 +299,31 @@ def live_question_handler(message):
         Задать вопрос преподавателю во время лекции.
     """
 
-    student = Student.objects(user_id=message.chat.id).first()
+    if (student := Student.objects(user_id=message.chat.id)):
+        student = student.first()
 
-    if student.status == "standby":
-        time_delta = datetime.today() - cfg.FIRST_CLASS_DAY
-        if time_delta.seconds <= cfg.CLASS_DURATION and time_delta.days % cfg.CLASS_OFFSET == 0:
-            if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
-                student.last_live_q = time.time()
-                student.status = "live_question"
+        if student.status == "standby":
+            time_delta = datetime.today() - cfg.FIRST_CLASS_DAY
+            if time_delta.seconds <= cfg.CLASS_DURATION and time_delta.days % cfg.CLASS_OFFSET == 0:
+                if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
+                    student.last_live_q = time.time()
+                    student.status = "live_question"
 
-                student.save()
+                    student.save()
 
-                bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
+                    bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
+                else:
+                    spam_time = int(cfg.LIVE_Q_DELAY - (time.time() - student.last_live_q))
+                    time_msg = f"⏰ Подождите {spam_time} секунд прежде чем еще раз задавать вопрос."
+                    bot.send_message(message.chat.id, time_msg)
             else:
-                spam_time = int(cfg.LIVE_Q_DELAY - (time.time() - student.last_live_q))
-                time_msg = f"⏰ Подождите {spam_time} секунд прежде чем еще раз задавать вопрос."
-                bot.send_message(message.chat.id, time_msg)
+                bot.send_message(
+                    message.chat.id, "⛔ Вопросы можно задавать только во время лекции.")
+        elif student.status == "live_question":
+            bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
         else:
             bot.send_message(
-                message.chat.id, "⛔ Вопросы можно задавать только во время лекции.")
-    elif student.status == "live_question":
-        bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
-    else:
-        bot.send_message(
-            message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
+                message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
 @bot.message_handler(
