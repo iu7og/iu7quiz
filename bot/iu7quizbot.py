@@ -82,11 +82,11 @@ def send_confirmation():
 
             # Функция возвращает измененный объект студента (имитация передачи по ссылке).
             # (p.s.: в функции записывается время отправления сообщения с вопросом о готовности).
-            student = send_single_confirmation(student)
+            student = send_single_confirmation(student, True)
             student.save()
 
 
-def send_single_confirmation(student):
+def send_single_confirmation(student, is_first):
     """
         Отправка одному студенту сообщения с вопросом о готовности отвечать на вопрос.
     """
@@ -99,11 +99,16 @@ def send_single_confirmation(student):
         telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN)
     )
 
+    if is_first:
+        message = "Доброго времени суток! " + \
+            "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+    else:
+        message = "💡 У меня появился к Вам новый вопрос! Готовы ответить?"
+
     bot.send_message(student.user_id, "📝")
     bot.send_message(
         student.user_id,
-        "Доброго времени суток! " +
-        "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+        message,
         reply_markup=markup
     )
 
@@ -414,7 +419,7 @@ def query_handler_questions(call):
         if len(student.queue) != 0 and student.queue[0]["days_left"] <= 0:
             if cfg.DEV_MODE_QUEUE:
                 print("Asking one more question\n")
-            send_single_confirmation(student)
+            send_single_confirmation(student, False)
             student.status = "is_ready"
         else:
             if cfg.DEV_MODE_QUEUE:
