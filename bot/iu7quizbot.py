@@ -24,8 +24,6 @@ from bot.dbinstances import Student, Question
 bot = telebot.TeleBot(cfg.TOKEN)
 mongoengine.connect(host=cfg.HOST)
 
-TEACHER_ID = "ID"
-
 def create_leaderboard_page(btn, prev_page=None):
     """
         Создание одной страницы лидерборда.
@@ -282,16 +280,19 @@ def live_question_handler(message):
         Задать вопрос преподавателю во время лекции.
     """
 
-    # у всех появляется новое int поле))))))))))))))
-    # план такой, проверяем зареган ли чел у нас, но только полностью
-    # в поле написано когда человек задавал последний раз вопрос (дефолт 0)
-    # если после последнего вопроса прошло n минут, то это... отправляем
-    # иначе уведомляем человека сколько ещо ждать..
+    if Student.objects(user_id=message.chat.id):
+        student = Student.objects(user_id=message.chat.id).first()
+        if student.status != "registration":
+            if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
+                bot.send_message(cfg.LECTOR_ID, message.text)
+                student.last_live_q = time.time()
+                student.save()
 
-    # ну и я бы в инфо добавил короче как работает question как минимум
-
-    bot.send_message(TEACHER_ID, message.text)
-    bot.reply_to(message, "📮 Ваш вопрос принят!")
+                bot.reply_to(message, "📮 Ваш вопрос принят!")
+            else:
+                spam_time = int(cfg.LIVE_Q_DELAY - (time.time() - student.last_live_q))
+                time_msg = f"⏰ Подождите {spam_time} секунд прежде чем еще раз задавать вопрос."
+                bot.send_message(message.chat.id, time_msg)
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.GROUPS_BTNS)
