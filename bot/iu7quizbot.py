@@ -305,6 +305,11 @@ def live_question_handler(message):
                     message.chat.id,
                     "⛔ Вопросы можно задавать только во время лекции."
                 )
+        elif student.status == "question":
+            bot.send_message(
+                message.chat.id,
+                "🖋️ Введите ваш вопрос:"
+            )
         else:
             bot.send_message(
                 message.chat.id,
