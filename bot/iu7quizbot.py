@@ -290,7 +290,7 @@ def live_question_handler(message):
         if student.status == "standby":
             if (datetime.today() - cfg.F_CLASS).seconds % (cfg.CLASS_OFFSET * 24 * 3600) <= 5400:
                 if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
-                    bot.send_message(cfg.LECTOR_ID, message.text)
+                    bot.send_message(cfg.LECTOR_ID, message.text[7:])
                     student.last_live_q = time.time()
                     student.save()
 
