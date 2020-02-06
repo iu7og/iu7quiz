@@ -290,7 +290,7 @@ def live_question_handler(message):
 
         if student.status == "standby":
             time_delta = datetime.today() - cfg.FIRST_CLASS_DAY
-            if time_delta.seconds <= 5400 and time_delta.days % cfg.CLASS_OFFSET == 0:
+            if time_delta.seconds <= cfg.CLASS_DURATION and time_delta.days % cfg.CLASS_OFFSET == 0:
                 if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
                     student.last_live_q = time.time()
                     student.status = "question"
@@ -304,19 +304,12 @@ def live_question_handler(message):
                     bot.send_message(message.chat.id, time_msg)
             else:
                 bot.send_message(
-                    message.chat.id,
-                    "⛔ Вопросы можно задавать только во время лекции."
-                )
+                    message.chat.id, "⛔ Вопросы можно задавать только во время лекции.")
         elif student.status == "question":
-            bot.send_message(
-                message.chat.id,
-                "🖋️ Введите ваш вопрос:"
-            )
+            bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
         else:
             bot.send_message(
-                message.chat.id,
-                "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота."
-            )
+                message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
 @bot.message_handler(
