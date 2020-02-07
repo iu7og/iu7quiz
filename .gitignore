@@ -133,12 +133,9 @@ init-mongo.js
 
 # Admin utils
 utils/
-check.py
-fresh.py
 
 # Credentials
-credentials.env
-gscredentials.json
+creds/
 
 # .dockerignore
 .dockerignore
