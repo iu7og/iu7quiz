@@ -17,7 +17,9 @@ DB_NAME = os.environ['DB_NAME']
 DB_USER = os.environ['DB_USER']
 DB_PASS = os.environ['DB_PASS']
 DB_HOST = os.environ['DB_HOST']
+DB_IP = os.environ['DB_IP']
 HOST = f"mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:27017/{DB_NAME}"
+SIDE_HOST = f"mongodb://{DB_USER}:{DB_PASS}@{DB_IP}:27017/{DB_NAME}"
 
 # Конфигурация клиентской части бота.
 GROUPS_BTNS = ("ИУ7-21Б", "ИУ7-22Б", "ИУ7-23Б", "ИУ7-24Б", "ИУ7-25Б", "ИУ7-26Б")
@@ -30,8 +32,8 @@ LECTOR_ID = "ID"
 LIVE_Q_DELAY = 60
 # Здесь указывается дата первой лекции, от нее ведется отсчет.
 FIRST_CLASS_DAY = datetime(2020, 2, 11, 8, 30)
-CLASS_OFFSET = 14 # Время в днях до следующей лекции.
-CLASS_DURATION = 5400 # Длительность лекции в секундах.
+CLASS_OFFSET = 14  # Время в днях до следующей лекции.
+CLASS_DURATION = 5400  # Длительность лекции в секундах.
 
 # Конфигурация рейтинговой системы.
 # Коэффициенты главной формулы.
@@ -50,6 +52,12 @@ HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
 DEV_MODE_RATING = False
 DEV_MODE_QUEUE = True
 
-# Настройки времени
+# Настройки времени.
 FIRST_QUESTION_DAY = datetime(2020, 2, 5, 10, 0)
 LB_TIMEOUT = 20
+
+# Конфигурация парсера.
+RECORD_SIZE = 6
+# Конфигурация Google Spreadsheets API.
+SH_CREDENTIALS = os.environ['SH_CREDENTIALS']
+SH_URL = os.environ['SH_URL']
