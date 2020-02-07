@@ -304,13 +304,13 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "registration":
-        bot.send_message(message.chat.id, "👨🏿‍🍳👮🏿‍♂️🧙🏿‍♂️🧜🏿‍♂️⛹🏿‍♂️ Выберите группу.🤾🏿‍♂️🏊🏿‍♂️")
+        bot.send_message(message.chat.id, "️👮🏻‍♀️ Выберите группу.")
 
     elif student.status == "standby":
         bot.send_message(message.chat.id, cfg.HELP_MSG)
 
     elif student.status == "is_ready":
-        answer = "Нажмите кнопку готов, если готовы ответить на вопрос 📚"
+        answer = "📚 Нажмите кнопку готов, если готовы ответить на вопрос."
         bot.send_message(message.chat.id, answer)
 
     elif student.status == "question":
