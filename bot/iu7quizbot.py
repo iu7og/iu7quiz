@@ -304,7 +304,7 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "registration":
-        bot.send_message(message.chat.id, "Выберите группу 👨🏿‍🍳👮🏿‍♂️🧙🏿‍♂️🧜🏿‍♂️⛹🏿‍♂️🤾🏿‍♂️🏊🏿‍♂️")
+        bot.send_message(message.chat.id, "👨🏿‍🍳👮🏿‍♂️🧙🏿‍♂️🧜🏿‍♂️⛹🏿‍♂️ Выберите группу.🤾🏿‍♂️🏊🏿‍♂️")
 
     elif student.status == "standby":
         bot.send_message(message.chat.id, cfg.HELP_MSG)
@@ -321,7 +321,7 @@ def help_message(message):
 
     # Случай состояния "live question".
     else:
-        answer = "Задайте свой вопрос 📚."
+        answer = "📚 Задайте свой вопрос:"
         bot.send_message(message.chat.id, answer)
 
 
