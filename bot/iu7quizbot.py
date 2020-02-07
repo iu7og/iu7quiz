@@ -58,7 +58,17 @@ context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 context.load_cert_chain(cfg.WEBHOOK_SSL_CERT, cfg.WEBHOOK_SSL_PRIV)
 
 
-def create_leaderboard_page(btn, prev_page=None):
+def find_student(user_id, students):
+    """
+        Поиск студента по user id в рейтинге всех студентов.
+    """
+
+    student = Student.objects(user_id=user_id).first()
+    student_info = list(filter(lambda x: x[0] == student.login, students))[0]
+    return student_info, students.index(student_info) + 1
+
+
+def create_leaderboard_page(btn, user_id, prev_page=None):
     """
         Создание одной страницы лидерборда.
     """
@@ -75,9 +85,12 @@ def create_leaderboard_page(btn, prev_page=None):
             new_page_start = int(
                 split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
 
-    page_text = ""
-    page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
     medals = cfg.LB_MEDALS.copy()  # Иначе в определенный момент память просто закончится.
+    page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
+
+    student, place = find_student(user_id, students)
+    page_text = f"🤥 {medals.setdefault(place, str(place) + '. ')}" + \
+        f"@{student[0]} ({student[2]}). Рейтинг: {student[1]:.2f}\n\n"
 
     for i, page in enumerate(page_list):
         curr_index = i + 1 + new_page_start
@@ -116,11 +129,11 @@ def send_confirmation():
 
             # Функция возвращает измененный объект студента (имитация передачи по ссылке).
             # (p.s.: в функции записывается время отправления сообщения с вопросом о готовности).
-            student = send_single_confirmation(student)
+            student = send_single_confirmation(student, True)
             student.save()
 
 
-def send_single_confirmation(student):
+def send_single_confirmation(student, is_first):
     """
         Отправка одному студенту сообщения с вопросом о готовности отвечать на вопрос.
     """
@@ -133,11 +146,16 @@ def send_single_confirmation(student):
         telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN)
     )
 
+    if is_first:
+        message = "Доброго времени суток! " + \
+            "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?"
+    else:
+        message = "💡 У меня появился к Вам новый вопрос! Готовы ответить?"
+
     bot.send_message(student.user_id, "📝")
     bot.send_message(
         student.user_id,
-        "Доброго времени суток! " +
-        "Готовы ли вы сейчас ответить на вопросы по прошедшей лекции?",
+        message,
         reply_markup=markup
     )
 
@@ -266,8 +284,9 @@ def show_leaderboard(message):
 
     student = Student.objects(user_id=message.from_user.id).first()
 
-    if student.status == "standby":
-        page = create_leaderboard_page(cfg.SCROLL_BTNS[1])
+    if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
+        student.lb_timeout = int(time.time())
+        page = create_leaderboard_page(cfg.SCROLL_BTNS[1], message.chat.id)
 
         if Student.objects.count() > cfg.LB_PAGE_SIZE:
             markup = telebot.types.InlineKeyboardMarkup()
@@ -281,6 +300,14 @@ def show_leaderboard(message):
             bot.send_message(message.chat.id, page, reply_markup=markup)
         else:
             bot.send_message(message.chat.id, page)
+
+    elif student.status == "standby":
+        bot.send_message(message.chat.id, "⏰ Вы недавно вызывали лидерборд. Повторите через " +
+                         f"{cfg.LB_TIMEOUT - (int(time.time()) - student.lb_timeout)} секунд.")
+
+    else:
+        bot.send_message(message.chat.id,
+                         "⛔️ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
 @bot.message_handler(commands=["help"])
@@ -308,12 +335,53 @@ def help_message(message):
         bot.send_message(message.chat.id, help_msg, parse_mode="markdown")
 
 
-# @bot.message_handler(func=lambda message: True)
-# def echo_message(message):
-#     """
-#         Задать вопрос преподавателю во время лекции.
-#     """
-#     bot.reply_to(message, "📮 Ваш вопрос принят!")
+@bot.message_handler(commands=["question"])
+def live_question_handler(message):
+    """
+        Задать вопрос преподавателю во время лекции.
+    """
+
+    if student := Student.objects(user_id=message.chat.id):
+        student = student.first()
+
+        if student.status == "standby":
+            time_delta = datetime.today() - cfg.FIRST_CLASS_DAY
+            if time_delta.seconds <= cfg.CLASS_DURATION and time_delta.days % cfg.CLASS_OFFSET == 0:
+                if time.time() - student.last_live_q >= cfg.LIVE_Q_DELAY:
+                    student.last_live_q = time.time()
+                    student.status = "live_question"
+
+                    student.save()
+
+                    bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
+                else:
+                    spam_time = int(cfg.LIVE_Q_DELAY - (time.time() - student.last_live_q))
+                    time_msg = f"⏰ Подождите {spam_time} секунд прежде чем еще раз задавать вопрос."
+                    bot.send_message(message.chat.id, time_msg)
+            else:
+                bot.send_message(
+                    message.chat.id, "⛔ Вопросы можно задавать только во время лекции.")
+        elif student.status == "live_question":
+            bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
+        else:
+            bot.send_message(
+                message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
+
+
+@bot.message_handler(
+    func=lambda msg: Student.objects(user_id=msg.chat.id).first().status == "live_question")
+def question_sender(msg):
+    """
+        Пересылка вопроса преподавателю.
+    """
+
+    student = Student.objects(user_id=msg.chat.id).first()
+
+    bot.send_message(cfg.LECTOR_ID, msg.text)
+    bot.send_message(msg.chat.id, "📮 Ваш вопрос принят!")
+
+    student.status = "standby"
+    student.save()
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.GROUPS_BTNS)
@@ -435,7 +503,7 @@ def query_handler_questions(call):
         if len(student.queue) != 0 and student.queue[0]["days_left"] <= 0:
             if cfg.DEV_MODE_QUEUE:
                 print("Asking one more question\n")
-            send_single_confirmation(student)
+            send_single_confirmation(student, False)
             student.status = "is_ready"
         else:
             if cfg.DEV_MODE_QUEUE:
@@ -452,7 +520,11 @@ def query_handler_scroll(call):
     """
 
     bot.answer_callback_query(call.id)
-    new_page, is_border = create_leaderboard_page(call.data, call.message.text)
+    new_page, is_border = create_leaderboard_page(
+        call.data,
+        call.message.chat.id,
+        call.message.text
+    )
 
     if is_border:
         markup = telebot.types.InlineKeyboardMarkup()
