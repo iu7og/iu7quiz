@@ -46,11 +46,11 @@ SYMBOLS_PER_SECOND = 25
 HALF_WAITING_HOURS = 12
 HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
 
-# Конфигурация вебхука
+# Конфигурация вебхука.
 
 WEBHOOK_HOST = os.environ['DB_DOMAIN']
 WEBHOOK_PORT = 8443
-WEBHOOK_LISTEN = '0.0.0.0'
+WEBHOOK_LISTEN = "0.0.0.0"
 
 WEBHOOK_SSL_CERT = os.environ['SSL_CERT']
 WEBHOOK_SSL_PRIV = os.environ['SSL_KEY']
