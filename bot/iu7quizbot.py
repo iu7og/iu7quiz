@@ -9,6 +9,9 @@
 from datetime import datetime
 from random import shuffle
 
+import logging
+import ssl
+
 import json
 import time
 import multiprocessing
@@ -16,13 +19,43 @@ import telebot
 import schedule
 import mongoengine
 
+from aiohttp import web
+
 import bot.config as cfg
 import bot.statistics as stat
 import bot.rating as rt
 from bot.dbinstances import Student, Question
 
+logger = telebot.logger
+telebot.logger.setLevel(logging.INFO)
+
 bot = telebot.TeleBot(cfg.TOKEN)
 mongoengine.connect(host=cfg.HOST)
+
+app = web.Application()
+
+
+async def handle(request):
+    """
+        AIOHTTP обработчик.
+    """
+
+    if request.match_info.get("token") == bot.token:
+        request_body_dict = await request.json()
+        update = telebot.types.Update.de_json(request_body_dict)
+        bot.process_new_updates([update])
+        return web.Response()
+    
+    return web.Response(status=403)
+
+
+app.router.add_post("/{token}/", handle)
+
+bot.remove_webhook()
+bot.set_webhook(url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH)
+
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context.load_cert_chain(cfg.WEBHOOK_SSL_CERT, cfg.WEBHOOK_SSL_PRIV)
 
 
 def find_student(user_id, students):
@@ -182,8 +215,8 @@ def authorization(message):
         count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
         if count_missed_questions > 0:
-            questions_queue = [{"question_day": i, "days_left": 0} \
-                for i in range(count_missed_questions + 1)]
+            questions_queue = [{"question_day": i, "days_left": 0}
+                               for i in range(count_missed_questions + 1)]
 
         student = Student(
             user_id=message.chat.id,
@@ -510,4 +543,10 @@ def query_handler_scroll(call):
 
 if __name__ == "__main__":
     multiprocessing.Process(target=schedule_message, args=()).start()
-    bot.polling()
+
+    web.run_app(
+        app,
+        host=cfg.WEBHOOK_LISTEN,
+        port=cfg.WEBHOOK_PORT,
+        ssl_context=context,
+    )

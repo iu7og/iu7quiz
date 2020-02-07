@@ -17,6 +17,7 @@ RUN python -m pip install -r /cfg/requirements.txt
 RUN apk del .tmp-build-deps
 
 RUN mkdir /bot
+RUN mkdir /certs
 COPY ./bot /bot
 
 RUN adduser -D iu7og
