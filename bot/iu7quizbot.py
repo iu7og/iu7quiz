@@ -321,7 +321,7 @@ def help_message(message):
 
     # Случай состояния "live question".
     else:
-        answer = "Задайте свой вопрос."
+        answer = "Задайте свой вопрос 📚."
         bot.send_message(message.chat.id, answer)
 
 
