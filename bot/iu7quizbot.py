@@ -253,6 +253,8 @@ def show_leaderboard(message):
 
     if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
         student.lb_timeout = int(time.time())
+        student.save()
+
         page = create_leaderboard_page(cfg.SCROLL_BTNS[1], message.chat.id)
 
         if Student.objects.count() > cfg.LB_PAGE_SIZE:
