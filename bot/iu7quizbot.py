@@ -312,7 +312,8 @@ def help_message(message):
         bot.send_message(message.chat.id, answer)
 
     elif student.status == "question":
-        answer = f"Я ничего не понимаю на человеческом, но вариант {choice(["🅰️", "🅱️"])} " \
+        variants = ["🅰️", "🅱️"]
+        answer = f"Я ничего не понимаю на человеческом, но вариант {choice(variants)} " \
             "выглядит привлекательно!"
         bot.send_message(message.chat.id, answer)
 
