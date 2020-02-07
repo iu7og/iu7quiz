@@ -47,9 +47,5 @@ def parse_to_mongo():
     mongoengine.disconnect()
 
 
-def schedule_parser():
-    schedule.every().day.at("9:50").do(parse_to_mongo)
-
-
 if __name__ == "__main__":
     parse_to_mongo()

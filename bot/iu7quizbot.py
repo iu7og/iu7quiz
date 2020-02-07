@@ -20,6 +20,7 @@ import bot.config as cfg
 import bot.statistics as stat
 import bot.rating as rt
 from bot.dbinstances import Student, Question
+from tools.gsparser import parse_to_mongo
 
 bot = telebot.TeleBot(cfg.TOKEN)
 mongoengine.connect(host=cfg.HOST)
@@ -158,13 +159,15 @@ def update_queue():
     send_confirmation()
 
 
-def schedule_message():
+def schedule_bot():
     """
         Планировщик сообщений.
     """
 
     # schedule.every().day.at("10:00").do(update_queue)
     schedule.every(1).hour.do(update_queue)
+    # schedule.every().day.at("9:50").do(parse_to_mongo)
+    schedule.every(50).minutes.do(parse_to_mongo)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -509,5 +512,5 @@ def query_handler_scroll(call):
 
 
 if __name__ == "__main__":
-    multiprocessing.Process(target=schedule_message, args=()).start()
+    multiprocessing.Process(target=schedule_bot, args=()).start()
     bot.polling()
