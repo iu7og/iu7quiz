@@ -48,6 +48,18 @@ SYMBOLS_PER_SECOND = 25
 HALF_WAITING_HOURS = 12
 HALF_WAITING_FACTOR = log(2) / HALF_WAITING_HOURS
 
+# Конфигурация вебхука.
+
+WEBHOOK_HOST = os.environ['DB_DOMAIN']
+WEBHOOK_PORT = 8443
+WEBHOOK_LISTEN = "0.0.0.0"
+
+WEBHOOK_SSL_CERT = os.environ['SSL_CERT']
+WEBHOOK_SSL_PRIV = os.environ['SSL_KEY']
+
+WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
+WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
+
 # Флаг отладочной печати (если True, то она будет)
 DEV_MODE_RATING = False
 DEV_MODE_QUEUE = True
