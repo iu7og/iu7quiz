@@ -25,7 +25,7 @@ import bot.config as cfg
 import bot.statistics as stat
 import bot.rating as rt
 from bot.dbinstances import Student, Question
-from tools.gsparser import parse_to_mongo
+from bot.gsparser import parse_to_mongo
 
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)
@@ -198,9 +198,9 @@ def schedule_bot():
     """
 
     # schedule.every().day.at("10:00").do(update_queue)
-    schedule.every(1).hour.do(update_queue)
+    schedule.every(2).minutes.do(update_queue)
     # schedule.every().day.at("9:50").do(parse_to_mongo)
-    schedule.every(50).minutes.do(parse_to_mongo)
+    schedule.every(1).minutes.do(parse_to_mongo)
     while True:
         schedule.run_pending()
         time.sleep(1)
