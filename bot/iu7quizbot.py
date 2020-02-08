@@ -303,11 +303,11 @@ def help_message(message):
 
     student = Student.objects(user_id=message.from_user.id).first()
 
-    if student.status == "registration":
-        bot.send_message(message.chat.id, "️👮🏻‍♀️ Выберите группу.")
-
-    elif student.status == "standby":
+    if student.status == "standby":
         bot.send_message(message.chat.id, cfg.HELP_MSG)
+
+    elif student.status == "registration":
+        bot.send_message(message.chat.id, "️👮🏻‍♀️ Выберите группу.")
 
     elif student.status == "is_ready":
         answer = "📚 Нажмите кнопку готов, если готовы ответить на вопрос."
@@ -319,11 +319,12 @@ def help_message(message):
             "выглядит привлекательно!"
         bot.send_message(message.chat.id, answer)
 
-    # Случай состояния "live question".
-    else:
+    elif student.status == "live_question":
         answer = "📚 Задайте свой вопрос:"
         bot.send_message(message.chat.id, answer)
 
+    else:
+        bot.send_message(message.chat.id, "Ничем не могу помочь, напишите разработчикам...")
 
 @bot.message_handler(commands=["rules"])
 def rules_message(message):
