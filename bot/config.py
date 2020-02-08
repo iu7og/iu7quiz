@@ -71,5 +71,6 @@ LB_TIMEOUT = 20
 # Конфигурация парсера.
 RECORD_SIZE = 6
 # Конфигурация Google Spreadsheets API.
+SCOPE = ["https://spreadsheets.google.com/feeds"]
 SH_CREDENTIALS = os.environ['SH_CREDENTIALS']
 SH_URL = os.environ['SH_URL']

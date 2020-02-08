@@ -12,7 +12,7 @@ import gspread
 import schedule
 from oauth2client.service_account import ServiceAccountCredentials
 
-from bot.config import HOST, SYMBOLS_PER_SECOND, RECORD_SIZE, SH_CREDENTIALS, SH_URL
+from bot.config import HOST, SYMBOLS_PER_SECOND, RECORD_SIZE, SCOPE, SH_CREDENTIALS, SH_URL
 from bot.dbinstances import Question
 
 
@@ -21,8 +21,7 @@ def parse_to_mongo():
         Парсинг вопросов из Google таблиц.
     """
 
-    scope = ["https://spreadsheets.google.com/feeds"]
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(SH_CREDENTIALS, scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(SH_CREDENTIALS, SCOPE)
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(SH_URL)
     worksheet = spreadsheet.worksheet("Лекция")
