@@ -337,6 +337,9 @@ def rules_message(message):
     if student.status == "standby":
         bot.send_message(message.chat.id, cfg.RULES_MSG)
 
+    elif student.status == "live_question":
+        bot.send_message(message.chat.id, "⛔️ Прежде чем посмотреть правила, задайте свой вопрос.")
+
     else:
         bot.send_message(message.chat.id,
                          "⛔️ Прежде чем посмотреть правила, ответьте на вопросы бота.")
