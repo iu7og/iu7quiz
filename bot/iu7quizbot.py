@@ -7,7 +7,7 @@
 """
 
 from datetime import datetime
-from random import shuffle
+from random import shuffle, choice
 
 import logging
 import ssl
@@ -289,6 +289,8 @@ def show_leaderboard(message):
 
     if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
         student.lb_timeout = int(time.time())
+        student.save()
+
         page = create_leaderboard_page(cfg.SCROLL_BTNS[1], message.chat.id)
 
         if Student.objects.count() > cfg.LB_PAGE_SIZE:
@@ -310,11 +312,11 @@ def show_leaderboard(message):
 
     else:
         bot.send_message(message.chat.id,
-                         "⛔️ Прежде чем задавать вопросы, ответьте на вопросы бота.")
+                         "⛔️ Прежде чем вызвать лидерборд, ответьте на вопросы бота.")
 
 
-@bot.message_handler(commands=["help"])
-def help_message(message):
+@bot.message_handler(commands=["info"])
+def info_message(message):
     """
         Информация о боте.
     """
@@ -322,20 +324,61 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        help_msg = "📮 *IU7QuizBot* by IU7OG Team 📮\n\n" \
-            "Данный бот предназаначен для закрпеления студентами лекционного материала " \
-            "по курсу *Программирование на Си* в *МГТУ им. Н.Э. Баумана*, " \
-            "на кафедре *ИУ7*.\n\n" \
-            "🛠 Разработчики:\n" \
-            "📍 Романов Алексей @mRRvz\n" \
-            "📍 Пересторонин Павел @Justarone\n" \
-            "📍 Кононенко Сергей @hackfeed\n" \
-            "📍 Нитенко Михаил @VASYA\_VAN\n" \
-            "📍 Якуба Дмитрий @xGULZAx\n\n" \
-            "🔱 Все права защищены. 2020 год.\n" \
-            "📡 [iu7og.design](https://iu7og.design) 📡\n"
+        bot.send_message(message.chat.id, cfg.INFO_MSG, parse_mode="markdown")
 
-        bot.send_message(message.chat.id, help_msg, parse_mode="markdown")
+    else:
+        bot.send_message(message.chat.id,
+                         "⛔️ Прежде чем посмотреть информацию, ответьте на вопросы бота.")
+
+
+@bot.message_handler(commands=["help"])
+def help_message(message):
+    """
+        Помощь в использовании бота.
+    """
+
+    student = Student.objects(user_id=message.from_user.id).first()
+
+    if student.status == "standby":
+        bot.send_message(message.chat.id, cfg.HELP_MSG)
+
+    elif student.status == "registration":
+        bot.send_message(message.chat.id, "️👮🏻‍♀️ Выберите группу.")
+
+    elif student.status == "is_ready":
+        answer = "📚 Нажмите кнопку готов, если готовы ответить на вопрос."
+        bot.send_message(message.chat.id, answer)
+
+    elif student.status == "question":
+        variants = ["🅰️", "🅱️"]
+        answer = f"Я ничего не понимаю на человеческом, но вариант {choice(variants)} " \
+            "выглядит привлекательно!"
+        bot.send_message(message.chat.id, answer)
+
+    elif student.status == "live_question":
+        answer = "📚 Задайте свой вопрос:"
+        bot.send_message(message.chat.id, answer)
+
+    else:
+        bot.send_message(message.chat.id, "Ничем не могу помочь, напишите разработчикам...")
+
+@bot.message_handler(commands=["rules"])
+def rules_message(message):
+    """
+        Правила работы бота.
+    """
+
+    student = Student.objects(user_id=message.from_user.id).first()
+
+    if student.status == "standby":
+        bot.send_message(message.chat.id, cfg.RULES_MSG)
+
+    elif student.status == "live_question":
+        bot.send_message(message.chat.id, "⛔️ Прежде чем посмотреть правила, задайте свой вопрос.")
+
+    else:
+        bot.send_message(message.chat.id,
+                         "⛔️ Прежде чем посмотреть правила, ответьте на вопросы бота.")
 
 
 @bot.message_handler(commands=["question"])
