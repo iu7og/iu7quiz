@@ -335,7 +335,7 @@ def question_sender(msg):
 
     student = Student.objects(user_id=msg.chat.id).first()
 
-    bot.send_message(cfg.LECTOR_ID, msg.text)
+    bot.send_message(cfg.LECTOR_ID, "@" + msg.from_user.username + ": " + msg.text)
     bot.send_message(msg.chat.id, "📮 Ваш вопрос принят!")
 
     student.status = "standby"
