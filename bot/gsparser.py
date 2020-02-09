@@ -6,13 +6,11 @@
 """
 
 
-import os
 import mongoengine
 import gspread
-import schedule
 from oauth2client.service_account import ServiceAccountCredentials
 
-from bot.config import HOST, SYMBOLS_PER_SECOND, RECORD_SIZE, SCOPE, SH_CREDENTIALS, SH_URL
+from bot.config import HOST, SYMBOLS_PER_SECOND, SCOPE, SH_CREDENTIALS, SH_URL
 from bot.dbinstances import Question
 
 
