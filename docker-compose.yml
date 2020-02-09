@@ -6,8 +6,9 @@ services:
     container_name: "iu7quizbot"
     command: sh -c "PYTHONPATH='.' python bot/iu7quizbot.py"
     env_file:
-      - credentials.env
+      - ./creds/credentials.env
     volumes:
+      - ./creds:/creds
       - ./certs:/certs
     ports:
       - "8443:8443"
@@ -18,7 +19,7 @@ services:
     image: mongo:4.2
     container_name: "mongodb"
     env_file:
-      - credentials.env
+      - ./creds/credentials.env
     environment:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null

@@ -135,7 +135,7 @@ init-mongo.js
 utils/
 
 # Credentials
-credentials.env
+creds/
 
 # .dockerignore
 .dockerignore

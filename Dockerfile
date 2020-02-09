@@ -18,6 +18,7 @@ RUN apk del .tmp-build-deps
 
 RUN mkdir /bot
 RUN mkdir /certs
+RUN mkdir /creds
 COPY ./bot /bot
 
 RUN adduser -D iu7og
