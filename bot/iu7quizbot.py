@@ -168,7 +168,7 @@ def update_queue():
         Функция добавления "вопроса дня".
     """
 
-    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
+    today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).day
 
     for student in Student.objects(status__ne="registration"):
 
@@ -181,7 +181,9 @@ def update_queue():
             questions["days_left"] -= 1
 
         # Вопрос дня добавляется на самое первое место
-        student.queue.insert(0, {"question_day": today_question_day, "days_left": 0})
+        for i in range(today_question_day * cfg.QUESTION_PORTION,
+                       (today_question_day + 1) * cfg.QUESTION_PORTION):
+            student.queue.insert(0, {"question_day": i, "days_left": 0})
 
         if cfg.DEV_MODE_QUEUE:
             print(f"Queue after: {student.queue}\n")
@@ -192,15 +194,37 @@ def update_queue():
     send_confirmation()
 
 
+def end_notifications():
+    """
+        Функция рассылки информации о том, что больше нельзя задавать вопросы лектору.
+    """
+
+    for student in Student.objects(status__ne="registration"):
+        bot.send_message(student.user_id,
+                         "🛑 Начиная с этого момента вы больше не можете задать вопрос лектору.")
+
+
+def questions_notification():
+    """
+        Функция рассылки информации о том, что можно задавать вопросы лектору.
+    """
+
+    for student in Student.objects(status__ne="registration"):
+        bot.send_message(student.user_id, "📬")
+        bot.send_message(student.user_id,
+                         "Начиная с этого момента вы можете задать вопрос лектору.")
+
+
 def schedule_bot():
     """
         Планировщик сообщений.
     """
 
-    # schedule.every().day.at("10:00").do(update_queue)
-    schedule.every(1).hour.do(update_queue)
-    # schedule.every().day.at("9:50").do(parse_to_mongo)
-    schedule.every(50).minutes.do(parse_to_mongo)
+    schedule.every().tuesday.at("8:30").do(questions_notification)
+    schedule.every().day.at("9:00").do(parse_to_mongo)
+    schedule.every().tuesday.at("10:05").do(end_notifications)
+    schedule.every().day.at("10:05").do(update_queue)
+
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -340,7 +364,7 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        bot.send_message(message.chat.id, cfg.HELP_MSG)
+        bot.send_message(message.chat.id, cfg.HELP_MSG, parse_mode="markdown")
 
     elif student.status == "registration":
         bot.send_message(message.chat.id, "️👮🏻‍♀️ Выберите группу.")
@@ -362,6 +386,7 @@ def help_message(message):
     else:
         bot.send_message(message.chat.id, "Ничем не могу помочь, напишите разработчикам...")
 
+
 @bot.message_handler(commands=["rules"])
 def rules_message(message):
     """
@@ -371,7 +396,7 @@ def rules_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        bot.send_message(message.chat.id, cfg.RULES_MSG)
+        bot.send_message(message.chat.id, cfg.RULES_MSG, parse_mode="markdown")
 
     elif student.status == "live_question":
         bot.send_message(message.chat.id, "⛔️ Прежде чем посмотреть правила, задайте свой вопрос.")
@@ -423,7 +448,7 @@ def question_sender(msg):
 
     student = Student.objects(user_id=msg.chat.id).first()
 
-    bot.send_message(cfg.LECTOR_ID, "@" + msg.from_user.username + ": " + msg.text)
+    bot.send_message(cfg.LECTOR_ID, msg.text)
     bot.send_message(msg.chat.id, "📮 Ваш вопрос принят!")
 
     student.status = "standby"
@@ -447,6 +472,42 @@ def query_handler_reg(call):
         student.save()
 
 
+def send_question(student):
+    """
+        Функция отправки вопроса (отправляет вопрос и замеряет нужную статистику).
+    """
+
+    # Номер вопроса берется у первого вопроса в очереди.
+    day = student.queue[0]["question_day"]
+    question = Question.objects(day=day).first()
+
+    if cfg.DEV_MODE_QUEUE:
+        print(f"Queue of {student.login} after ready confirmation: {student.queue}",
+              f"Got day {day}", sep='\n', end='\n\n')
+
+    datastore = json.loads(student.data)
+    datastore, student.waiting_time = stat.ready_update(datastore, day, student.qtime_start)
+
+    # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
+    student.qtime_start = time.time()
+    # Обновление информации об ответах на вопрос у студента.
+    student.data = json.dumps(datastore)
+    shuffle(question.answers)
+
+    message = f"❓ {question.text}\n\n"
+    for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
+        message += f"📌{btn}. {answer}\n"
+
+    bot.send_message(
+        student.user_id,
+        message,
+        reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
+    )
+
+    student.status = "question"
+    student.save()
+
+
 @bot.callback_query_handler(lambda call: call.data == cfg.READY_BTN)
 def query_handler_ready(call):
     """
@@ -458,35 +519,7 @@ def query_handler_ready(call):
     student = Student.objects(user_id=call.message.chat.id).first()
 
     if student.status == "is_ready":
-        # Номер вопроса берется у первого вопроса в очереди.
-        day = student.queue[0]["question_day"]
-        question = Question.objects(day=day).first()
-
-        if cfg.DEV_MODE_QUEUE:
-            print(f"Queue of {student.login} after ready confirmation: {student.queue}",
-                  f"Got day {day}", sep='\n', end='\n\n')
-
-        datastore = json.loads(student.data)
-        datastore, student.waiting_time = stat.ready_update(datastore, day, student.qtime_start)
-
-        # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
-        student.qtime_start = time.time()
-        # Обновление информации об ответах на вопрос у студента.
-        student.data = json.dumps(datastore)
-        shuffle(question.answers)
-
-        message = f"❓ {question.text}\n\n"
-        for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
-            message += f"📌{btn}. {answer}\n"
-
-        bot.send_message(
-            call.message.chat.id,
-            message,
-            reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
-        )
-
-        student.status = "question"
-        student.save()
+        send_question(student)
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.ANSWERS_BTNS)
@@ -549,12 +582,13 @@ def query_handler_questions(call):
         if len(student.queue) != 0 and student.queue[0]["days_left"] <= 0:
             if cfg.DEV_MODE_QUEUE:
                 print("Asking one more question\n")
-            send_single_confirmation(student, False)
-            student.status = "is_ready"
+            send_question(student)
         else:
             if cfg.DEV_MODE_QUEUE:
                 print("No more questions for today")
             student.status = "standby"
+            bot.send_message(call.message.chat.id,
+                             "🏁 На сегодня у меня нет больше к тебе вопросов, до завтра!")
 
         student.save()
 
