@@ -448,6 +448,10 @@ def query_handler_reg(call):
 
 
 def send_question(student):
+    """
+        Функция отправки вопроса (отправляет вопрос и замеряет нужную статистику)
+    """
+
     # Номер вопроса берется у первого вопроса в очереди.
     day = student.queue[0]["question_day"]
     question = Question.objects(day=day).first()
@@ -470,7 +474,7 @@ def send_question(student):
         message += f"📌{btn}. {answer}\n"
 
     bot.send_message(
-        call.message.chat.id,
+        student.user_id,
         message,
         reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
     )
