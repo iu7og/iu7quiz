@@ -168,8 +168,7 @@ def update_queue():
         Функция добавления "вопроса дня".
     """
 
-    # FIXME (поставил 120 секунд...)
-    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 119) % 7
+    today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).day
 
     for student in Student.objects(status__ne="registration"):
 
@@ -221,13 +220,11 @@ def schedule_bot():
         Планировщик сообщений.
     """
 
-    # schedule.every().day.at("10:00").do(update_queue)
-    #schedule.every(1).hour.do(update_queue)
-    schedule.every(2).minutes.do(update_queue)
-    # schedule.every().day.at("9:50").do(parse_to_mongo)
-    schedule.every(1).minutes.do(parse_to_mongo)
-    schedule.every(5).minutes.do(questions_notification)
-    schedule.every(6).minutes.do(end_notifications)
+    schedule.every().tuesday.at("8:30").do(questions_notification)
+    schedule.every().day.at("9:00").do(parse_to_mongo)
+    schedule.every().tuesday.at("10:05").do(end_notifications)
+    schedule.every().day.at("10:05").do(update_queue)
+
     while True:
         schedule.run_pending()
         time.sleep(1)
