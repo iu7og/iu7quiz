@@ -340,7 +340,7 @@ def help_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        bot.send_message(message.chat.id, cfg.HELP_MSG)
+        bot.send_message(message.chat.id, cfg.HELP_MSG, parse_mode="markdown")
 
     elif student.status == "registration":
         bot.send_message(message.chat.id, "️👮🏻‍♀️ Выберите группу.")
@@ -362,6 +362,7 @@ def help_message(message):
     else:
         bot.send_message(message.chat.id, "Ничем не могу помочь, напишите разработчикам...")
 
+        
 @bot.message_handler(commands=["rules"])
 def rules_message(message):
     """
@@ -371,7 +372,7 @@ def rules_message(message):
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
-        bot.send_message(message.chat.id, cfg.RULES_MSG)
+        bot.send_message(message.chat.id, cfg.RULES_MSG, parse_mode="markdown")
 
     elif student.status == "live_question":
         bot.send_message(message.chat.id, "⛔️ Прежде чем посмотреть правила, задайте свой вопрос.")
@@ -423,7 +424,7 @@ def question_sender(msg):
 
     student = Student.objects(user_id=msg.chat.id).first()
 
-    bot.send_message(cfg.LECTOR_ID, "@" + msg.from_user.username + ": " + msg.text)
+    bot.send_message(cfg.LECTOR_ID, msg.text)
     bot.send_message(msg.chat.id, "📮 Ваш вопрос принят!")
 
     student.status = "standby"
