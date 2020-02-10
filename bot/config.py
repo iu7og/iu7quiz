@@ -29,7 +29,7 @@ SCROLL_BTNS = ("◀️", "▶️")
 READY_BTN = "Готов"
 LB_MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 LB_PAGE_SIZE = 10
-LECTOR_ID = "ID"
+LECTOR_ID = 414583310 # заменить
 LIVE_Q_DELAY = 60
 # Здесь указывается дата первой лекции, от нее ведется отсчет.
 FIRST_CLASS_DAY = datetime(2020, 2, 11, 8, 30)
@@ -66,7 +66,7 @@ DEV_MODE_RATING = False
 DEV_MODE_QUEUE = True
 
 # Настройки времени.
-FIRST_QUESTION_DAY = datetime(2020, 2, 5, 10, 0)
+FIRST_QUESTION_DAY = datetime(2020, 2, 11, 10, 0)
 LB_TIMEOUT = 20
 
 # Конфигурация парсера.
