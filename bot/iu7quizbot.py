@@ -168,7 +168,8 @@ def update_queue():
         Функция добавления "вопроса дня".
     """
 
-    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 3600) % 7
+    # FIXME (поставил 120 секунд...)
+    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 119)
 
     for student in Student.objects(status__ne="registration"):
 
@@ -181,7 +182,9 @@ def update_queue():
             questions["days_left"] -= 1
 
         # Вопрос дня добавляется на самое первое место
-        student.queue.insert(0, {"question_day": today_question_day, "days_left": 0})
+        for i in range(today_question_day * cfg.QUESTION_PORTION,
+                       (today_question_day + 1) * cfg.QUESTION_PORTION):
+            student.queue.insert(0, {"question_day": i, "days_left": 0})
 
         if cfg.DEV_MODE_QUEUE:
             print(f"Queue after: {student.queue}\n")
@@ -190,6 +193,27 @@ def update_queue():
 
     # Предложения ответить будут разосланы тем, кто свободен.
     send_confirmation()
+
+
+def end_notifications():
+    """
+        Функция рассылки информации о том, что больше нельзя задавать вопросы лектору.
+    """
+
+    for student in Student.objects(status__ne="registration"):
+        bot.send_message(student.user_id,
+                         "🛑 Начиная с этого момента вы больше не можете задать вопрос лектору.")
+
+
+def questions_notification():
+    """
+        Функция рассылки информации о том, что можно задавать вопросы лектору.
+    """
+
+    for student in Student.objects(status__ne="registration"):
+        bot.send_message(student.user_id, "📬")
+        bot.send_message(student.user_id,
+                         "Начиная с этого момента вы можете задать вопрос лектору.")
 
 
 def schedule_bot():
@@ -202,6 +226,8 @@ def schedule_bot():
     schedule.every(2).minutes.do(update_queue)
     # schedule.every().day.at("9:50").do(parse_to_mongo)
     schedule.every(1).minutes.do(parse_to_mongo)
+    schedule.every(5).minutes.do(questions_notification)
+    schedule.every(6).minutes.do(end_notifications)
     while True:
         schedule.run_pending()
         time.sleep(1)
