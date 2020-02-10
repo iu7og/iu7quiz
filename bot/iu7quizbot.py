@@ -169,7 +169,7 @@ def update_queue():
     """
 
     # FIXME (поставил 120 секунд...)
-    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 119)
+    today_question_day = ((datetime.today() - cfg.FIRST_QUESTION_DAY).seconds // 119) % 7
 
     for student in Student.objects(status__ne="registration"):
 
