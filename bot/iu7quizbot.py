@@ -447,6 +447,38 @@ def query_handler_reg(call):
         student.save()
 
 
+def send_question(student):
+    # Номер вопроса берется у первого вопроса в очереди.
+    day = student.queue[0]["question_day"]
+    question = Question.objects(day=day).first()
+
+    if cfg.DEV_MODE_QUEUE:
+        print(f"Queue of {student.login} after ready confirmation: {student.queue}",
+              f"Got day {day}", sep='\n', end='\n\n')
+
+    datastore = json.loads(student.data)
+    datastore, student.waiting_time = stat.ready_update(datastore, day, student.qtime_start)
+
+    # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
+    student.qtime_start = time.time()
+    # Обновление информации об ответах на вопрос у студента.
+    student.data = json.dumps(datastore)
+    shuffle(question.answers)
+
+    message = f"❓ {question.text}\n\n"
+    for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
+        message += f"📌{btn}. {answer}\n"
+
+    bot.send_message(
+        call.message.chat.id,
+        message,
+        reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
+    )
+
+    student.status = "question"
+    student.save()
+
+
 @bot.callback_query_handler(lambda call: call.data == cfg.READY_BTN)
 def query_handler_ready(call):
     """
@@ -458,35 +490,7 @@ def query_handler_ready(call):
     student = Student.objects(user_id=call.message.chat.id).first()
 
     if student.status == "is_ready":
-        # Номер вопроса берется у первого вопроса в очереди.
-        day = student.queue[0]["question_day"]
-        question = Question.objects(day=day).first()
-
-        if cfg.DEV_MODE_QUEUE:
-            print(f"Queue of {student.login} after ready confirmation: {student.queue}",
-                  f"Got day {day}", sep='\n', end='\n\n')
-
-        datastore = json.loads(student.data)
-        datastore, student.waiting_time = stat.ready_update(datastore, day, student.qtime_start)
-
-        # Записать время приема ответа на сообщение с готовностью (== время отправки вопроса).
-        student.qtime_start = time.time()
-        # Обновление информации об ответах на вопрос у студента.
-        student.data = json.dumps(datastore)
-        shuffle(question.answers)
-
-        message = f"❓ {question.text}\n\n"
-        for btn, answer in zip(cfg.ANSWERS_BTNS, question.answers):
-            message += f"📌{btn}. {answer}\n"
-
-        bot.send_message(
-            call.message.chat.id,
-            message,
-            reply_markup=create_markup(list(cfg.ANSWERS_BTNS.keys()))
-        )
-
-        student.status = "question"
-        student.save()
+        send_question(student)
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.ANSWERS_BTNS)
@@ -550,11 +554,13 @@ def query_handler_questions(call):
             if cfg.DEV_MODE_QUEUE:
                 print("Asking one more question\n")
             send_single_confirmation(student, False)
-            student.status = "is_ready"
+            send_question(student)
         else:
             if cfg.DEV_MODE_QUEUE:
                 print("No more questions for today")
             student.status = "standby"
+            bot.send_message(call.message.chat.id,
+                             "🏁 На сегодня у меня нет больше к тебе вопросов, до завтра!")
 
         student.save()
 
