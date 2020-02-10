@@ -200,7 +200,7 @@ def schedule_bot():
     # schedule.every().day.at("10:00").do(update_queue)
     schedule.every(1).hour.do(update_queue)
     # schedule.every().day.at("9:50").do(parse_to_mongo)
-    schedule.every(50).minutes.do(parse_to_mongo)
+    schedule.every(5).minutes.do(parse_to_mongo)
     while True:
         schedule.run_pending()
         time.sleep(1)
