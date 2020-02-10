@@ -585,7 +585,6 @@ def query_handler_questions(call):
         if len(student.queue) != 0 and student.queue[0]["days_left"] <= 0:
             if cfg.DEV_MODE_QUEUE:
                 print("Asking one more question\n")
-            send_single_confirmation(student, False)
             send_question(student)
         else:
             if cfg.DEV_MODE_QUEUE:
