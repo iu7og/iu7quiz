@@ -32,7 +32,8 @@ LB_PAGE_SIZE = 10
 LECTOR_ID = 414583310 # заменить
 LIVE_Q_DELAY = 60
 # Здесь указывается дата первой лекции, от нее ведется отсчет.
-FIRST_CLASS_DAY = datetime(2020, 2, 11, 8, 30)
+#FIRST_CLASS_DAY = datetime(2020, 2, 11, 8, 30)
+FIRST_QUESTION_DAY = datetime(2020, 2, 10, 23, 55)
 CLASS_OFFSET = 14  # Время в днях до следующей лекции.
 CLASS_DURATION = 5400  # Длительность лекции в секундах.
 
@@ -66,7 +67,8 @@ DEV_MODE_RATING = False
 DEV_MODE_QUEUE = True
 
 # Настройки времени.
-FIRST_QUESTION_DAY = datetime(2020, 2, 11, 10, 0)
+#FIRST_QUESTION_DAY = datetime(2020, 2, 11, 10, 0)
+FIRST_QUESTION_DAY = datetime(2020, 2, 10, 23, 55)
 LB_TIMEOUT = 20
 
 # Конфигурация парсера.
