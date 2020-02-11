@@ -167,7 +167,7 @@ def update_queue():
         Функция добавления "вопроса дня".
     """
 
-    today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).day
+    today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
 
     for student in Student.objects(status__ne="registration"):
 
