@@ -59,16 +59,6 @@ context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 context.load_cert_chain(cfg.WEBHOOK_SSL_CERT, cfg.WEBHOOK_SSL_PRIV)
 
 
-def find_student(user_id, students):
-    """
-        Поиск студента по user id в рейтинге всех студентов.
-    """
-
-    student = Student.objects(user_id=user_id).first()
-    student_info = list(filter(lambda x: x[0] == student.login, students))[0]
-    return student_info, students.index(student_info) + 1
-
-
 def create_leaderboard_page(btn, user_id, prev_page=None):
     """
         Создание одной страницы лидерборда.
@@ -83,13 +73,11 @@ def create_leaderboard_page(btn, user_id, prev_page=None):
         if btn == "▶️":
             new_page_start = int(split_page[-1][:split_page[-1].find(".")])
         else:
-            new_page_start = int(
-                split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
+            new_page_start = int(split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
 
     medals = cfg.LB_MEDALS.copy()  # Иначе в определенный момент память просто закончится.
     page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
 
-    student, place = find_student(user_id, students)
     page_text = ""
 
     for i, page in enumerate(page_list):
@@ -142,9 +130,7 @@ def send_single_confirmation(student, is_first):
     student.qtime_start = time.time()
 
     markup = telebot.types.InlineKeyboardMarkup()
-    markup.add(
-        telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN)
-    )
+    markup.add(telebot.types.InlineKeyboardButton(text=cfg.READY_BTN, callback_data=cfg.READY_BTN))
 
     if is_first:
         message = "Доброго времени суток! " + \
@@ -153,11 +139,7 @@ def send_single_confirmation(student, is_first):
         message = "💡 У меня появился к Вам новый вопрос! Готовы ответить?"
 
     bot.send_message(student.user_id, "📝")
-    bot.send_message(
-        student.user_id,
-        message,
-        reply_markup=markup
-    )
+    bot.send_message(student.user_id, message, reply_markup=markup)
 
     return student
 
@@ -261,45 +243,6 @@ def authorization(message):
 
     else:
         bot.send_message(message.chat.id, "⚠️ Вы уже зарегистрированы в системе.")
-
-
-"""
-@bot.message_handler(commands=["unreg"])
-def delete(message):
-        #Отладочная комманда.
-
-    Question.objects().delete()
-    Student.objects().delete()
-    question = Question(
-        day=0,
-        text="ФИО преподавателя, читающего лекции по Программированию в данном семестре: ",
-        answers=
-            ["Кострицкий Антон Александрович",
-            "Кострицкий Александр Сергеевич",
-            "Кострицкий Сергей Владимирович",
-            "Кострицкий Игорь Владимирович"],
-            correct_answer="B",
-            best_time_to_answer=5
-        )
-
-    print(question.answers)
-    question.save()
-
-    print(message)
-    print(Student.objects(user_id=message.from_user.id))
-    Student.objects(user_id=message.from_user.id).delete()
-    print(Student.objects(user_id=message.from_user.id))
-
-    for i in range(103):
-        student = Student(
-            user_id=randint(1, 999999),
-            login="user"+str(randint(1,10)),
-            group=str(randint(1,9999999999)),
-            status="standby"
-        )
-
-        student.save()
-"""
 
 
 @bot.message_handler(commands=["leaderboard"])
