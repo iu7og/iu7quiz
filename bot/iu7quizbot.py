@@ -576,7 +576,8 @@ def query_handler_scroll(call):
         chat_id=call.message.chat.id,
         text=new_page,
         message_id=call.message.message_id,
-        reply_markup=markup
+        reply_markup=markup,
+        parse_mode="Markdown"
     )
 
 
