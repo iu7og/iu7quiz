@@ -7,7 +7,7 @@
 """
 
 from datetime import datetime
-from random import shuffle, choice
+from random import shuffle, choice, seed, randint
 
 import logging
 import ssl
@@ -59,6 +59,14 @@ context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 context.load_cert_chain(cfg.WEBHOOK_SSL_CERT, cfg.WEBHOOK_SSL_PRIV)
 
 
+def generate_r2d2():
+    """
+        Создание братьев R2-D2.
+    """
+    seed(datetime.now())
+    return f"R{randint(0, 100)}-D{randint(0, 100)}"
+
+
 def create_leaderboard_page(btn, user_id, prev_page=None):
     """
         Создание одной страницы лидерборда.
@@ -81,9 +89,10 @@ def create_leaderboard_page(btn, user_id, prev_page=None):
     page_text = ""
 
     for i, page in enumerate(page_list):
+        prefix = "" if page[0][0] == "[" else "@"
         curr_index = i + 1 + new_page_start
         page_text += f"{medals.setdefault(curr_index, str(curr_index) + '. ')}" + \
-            f"@{page[0]} ({page[2]}). Рейтинг: {page[1]:.2f}\n"
+            f"{prefix}{page[0]} ({page[2]}). Рейтинг: {page[1]:.2f}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
@@ -226,9 +235,14 @@ def authorization(message):
             questions_queue = [{"question_day": i, "days_left": 0}
                                for i in range(count_missed_questions + 1)]
 
+        login = message.chat.username
+
+        if message.chat.username is None:
+            login = generate_r2d2()
+
         student = Student(
             user_id=message.chat.id,
-            login=message.chat.username,
+            login=login,
             status="registration",
             queue=questions_queue
         )
@@ -268,9 +282,9 @@ def show_leaderboard(message):
                 )
             )
 
-            bot.send_message(message.chat.id, page, reply_markup=markup)
+            bot.send_message(message.chat.id, page, reply_markup=markup, parse_mode="Markdown")
         else:
-            bot.send_message(message.chat.id, page)
+            bot.send_message(message.chat.id, page, parse_mode="Markdown")
 
     elif student.status == "standby":
         bot.send_message(message.chat.id, "⏰ Вы недавно вызывали лидерборд. Повторите через " +
