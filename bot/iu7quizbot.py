@@ -91,9 +91,9 @@ def create_leaderboard_page(btn, user_id, prev_page=None):
     for i, page in enumerate(page_list):
         prefix = "" if page[0][0] == "[" else "@"
         curr_index = i + 1 + new_page_start
-        page[0] = page[0].replace("_", "\\_")
+        tmp = page[0].replace("_", "\\_")
         page_text += f"{medals.setdefault(curr_index, str(curr_index) + '. ')}" + \
-            f"{prefix}{page[0]} ({page[2]}). Рейтинг: {page[1]:.2f}\n"
+            f"{prefix}{tmp} ({page[2]}). Рейтинг: {page[1]:.2f}\n"
 
     is_border = len(page_list) != cfg.LB_PAGE_SIZE or new_page_start == 0
 
