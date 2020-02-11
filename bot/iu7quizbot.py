@@ -67,6 +67,16 @@ def generate_r2d2():
     return f"R{randint(0, 100)}-D{randint(0, 100)}"
 
 
+def find_student(user_id, students):
+    """
+        Поиск студента по user id в рейтинге всех студентов.
+    """
+
+    student = Student.objects(user_id=user_id).first()
+    student_info = list(filter(lambda x: x[0] == student.login, students))[0]
+    return student_info, students.index(student_info) + 1
+
+
 def create_leaderboard_page(btn, user_id, prev_page=None):
     """
         Создание одной страницы лидерборда.
@@ -81,12 +91,14 @@ def create_leaderboard_page(btn, user_id, prev_page=None):
         if btn == "▶️":
             new_page_start = int(split_page[-1][:split_page[-1].find(".")])
         else:
-            new_page_start = int(split_page[0][:split_page[0].find(".")]) - cfg.LB_PAGE_SIZE - 1
+            new_page_start = int(split_page[2][:split_page[2].find(".")]) - cfg.LB_PAGE_SIZE - 1
 
     medals = cfg.LB_MEDALS.copy()  # Иначе в определенный момент память просто закончится.
     page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
 
-    page_text = ""
+    student, place = find_student(user_id, students)
+    page_text = f"🔥 Ваше место в рейтинге: {medals.setdefault(place, str(place + '. '))}" + \
+        f". Рейтинг: {student[1]:.2f}\n\n"
 
     for i, page in enumerate(page_list):
         prefix = "" if page[0][0] == "[" else "@"
