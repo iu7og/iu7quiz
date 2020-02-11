@@ -90,8 +90,7 @@ def create_leaderboard_page(btn, user_id, prev_page=None):
     page_list = students[new_page_start:new_page_start + cfg.LB_PAGE_SIZE]
 
     student, place = find_student(user_id, students)
-    page_text = f"🤥 {medals.setdefault(place, str(place) + '. ')}" + \
-        f"@{student[0]} ({student[2]}). Рейтинг: {student[1]:.2f}\n\n"
+    page_text = ""
 
     for i, page in enumerate(page_list):
         curr_index = i + 1 + new_page_start
