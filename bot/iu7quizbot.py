@@ -231,11 +231,11 @@ def authorization(message):
 
         questions_queue = list()
         count_missed_questions = \
-            ((datetime.today() - cfg.FIRST_QUESTION_DAY).days  + 1) * cfg.QUESTION_PORTION
+            (datetime.today() - cfg.FIRST_QUESTION_DAY).days * cfg.QUESTION_PORTION
 
         if count_missed_questions > 0:
             questions_queue = [{"question_day": i, "days_left": 0}
-                               for i in range(count_missed_questions)]
+                               for i in range(count_missed_questions + cfg.QUESTION_PORTION)]
 
         login = message.chat.username
 
