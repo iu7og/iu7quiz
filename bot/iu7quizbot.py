@@ -223,8 +223,8 @@ def schedule_bot():
         Планировщик сообщений.
     """
 
-    schedule.every().tuesday.at("8:30").do(questions_notification)
-    schedule.every().day.at("9:00").do(parse_to_mongo)
+    schedule.every().tuesday.at("08:30").do(questions_notification)
+    schedule.every().day.at("09:00").do(parse_to_mongo)
     schedule.every().tuesday.at("10:05").do(end_notifications)
     schedule.every().day.at("10:05").do(update_queue)
 
@@ -251,7 +251,7 @@ def authorization(message):
         login = message.chat.username
 
         if message.chat.username is None:
-            login = generate_r2d2()
+            login = f"[{generate_r2d2()}](tg://user?id={str(message.chat.id)})"
 
         student = Student(
             user_id=message.chat.id,
