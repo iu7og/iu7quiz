@@ -230,11 +230,12 @@ def authorization(message):
     if not Student.objects(user_id=message.chat.id):
 
         questions_queue = list()
-        count_missed_questions = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
+        count_missed_questions = \
+            ((datetime.today() - cfg.FIRST_QUESTION_DAY).days  + 1) * cfg.QUESTION_PORTION
 
         if count_missed_questions > 0:
             questions_queue = [{"question_day": i, "days_left": 0}
-                               for i in range(count_missed_questions + 1)]
+                               for i in range(count_missed_questions)]
 
         login = message.chat.username
 
