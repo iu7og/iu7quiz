@@ -6,7 +6,7 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
-from datetime import datetime
+from datetime import datetime, date
 from random import shuffle, choice, seed, randint
 
 import logging
@@ -202,9 +202,10 @@ def end_notifications():
         Функция рассылки информации о том, что больше нельзя задавать вопросы лектору.
     """
 
-    for student in Student.objects(status__ne="registration"):
-        bot.send_message(student.user_id,
-                         "🛑 Начиная с этого момента вы больше не можете задать вопрос лектору.")
+    if date.today().isocalendar()[1] % 2:
+        for student in Student.objects(status__ne="registration"):
+            bot.send_message(student.user_id,
+                             "🛑 Начиная с этого момента вы больше не можете задать вопрос лектору.")
 
 
 def questions_notification():
@@ -212,10 +213,11 @@ def questions_notification():
         Функция рассылки информации о том, что можно задавать вопросы лектору.
     """
 
-    for student in Student.objects(status__ne="registration"):
-        bot.send_message(student.user_id, "📬")
-        bot.send_message(student.user_id,
-                         "Начиная с этого момента вы можете задать вопрос лектору.")
+    if date.today().isocalendar()[1] % 2:
+        for student in Student.objects(status__ne="registration"):
+            bot.send_message(student.user_id, "📬")
+            bot.send_message(student.user_id,
+                             "Начиная с этого момента вы можете задать вопрос лектору.")
 
 
 def schedule_bot():
