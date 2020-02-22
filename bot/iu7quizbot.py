@@ -378,6 +378,12 @@ def rules_message(message):
                          "⛔️ Прежде чем посмотреть правила, ответьте на вопросы бота.")
 
 
+@bot.message_handler(commands=["stat"])
+def send_stat(message):
+    student = Student.objects(user_id=message.chat.id).first()
+    bot.send_message(message.chat.id, stat.stat_msg(student))
+
+
 @bot.message_handler(commands=["question"])
 def live_question_handler(message):
     """
