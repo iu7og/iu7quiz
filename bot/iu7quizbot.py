@@ -180,8 +180,14 @@ def update_queue():
 
         # Кол-во дней ожидания у вопросов, которые уже находятся в очереди, уменьшается на 1
         # (p.s.: Если кол-во дней ожидания <= 0, то вопрос должен быть отправлен сегодня).
+        need_miss_msg = False
         for questions in student.queue:
             questions["days_left"] -= 1
+            if questions["days_left"] <= -cfg.MISS_DAYS:
+                need_miss_msg = True
+
+        if need_miss_msg:
+            bot.send_message(student.user_id, cfg.MISS_MESSAGE)
 
         # Вопрос дня добавляется на самое первое место
         for i in range(today_question_day * cfg.QUESTION_PORTION,
