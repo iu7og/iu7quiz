@@ -45,7 +45,7 @@ def right_answer_handler(question_object, question, times_cortege, queue):
     # (p.s.: sum_len вычислялся по старой статистике (перед добавлением
     # нового правильного ответа)).
     if sum_len != 0 and len(question_object["wrong"]) > 0 and \
-        sum_len - question_object["wrong"][-1] < 2:
+            sum_len - question_object["wrong"][-1] < 2:
         days_left = 2 + sum_len
 
         i = 0
@@ -99,9 +99,7 @@ def stat_msg(student):
     # Самый сложный вопрос - на котором было больше всего ошибок (1 - кол-во ошибок, 2 - вопрос)
     hardest_question = [len(datastore[0]["wrong"]), 1]
 
-    for i in range(len(datastore)):
-        question = datastore[i]
-
+    for i, question in enumerate(datastore):
         # Подсчет общего кол-ва ответов и правильных ответов.
         alltime_right += len(question["right"])
         alltime_total += len(question["right"]) + len(question["wrong"])
@@ -130,5 +128,3 @@ def stat_msg(student):
 
     total_stat += "\n* - учитываются только 1 попытки ответов."
     return total_stat
-
-
