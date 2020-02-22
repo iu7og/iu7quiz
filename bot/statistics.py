@@ -84,7 +84,7 @@ def wrong_answer_handler(question_object, question, queue):
 
 def stat_msg(student):
     """
-        Функция отправки статистики за все время.
+        Функция создания строки со статистикой за все время.
     """
 
     datastore = json.loads(student.data)
