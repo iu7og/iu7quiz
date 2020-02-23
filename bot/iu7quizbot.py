@@ -386,12 +386,12 @@ def rules_message(message):
 
 @bot.message_handler(commands=["stat"])
 def send_stat(message):
-     """
+    """
         Отправляет сообщение со статистикой при запросе пользователя (командой /stat).
-     """
+    """
 
     student = Student.objects(user_id=message.chat.id).first()
-    bot.send_message(message.chat.id, stat.stat_msg(student))
+    bot.send_message(message.chat.id, stat.stat_msg(student), parse_mode="markdown")
 
 
 @bot.message_handler(commands=["question"])
