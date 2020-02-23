@@ -111,7 +111,7 @@ def stat_msg(student):
             if question["right"][0][0] > max_wait:
                 max_wait = question["right"][0][0]
 
-    total_stat = f"Процент правильных ответов: *{alltime_right / alltime_total * 100:.2f} (на " \
+    total_stat = f"🧮Процент правильных ответов: *{alltime_right / alltime_total * 100:.2f}% (на " \
         f"{alltime_right}/{alltime_total} был дан правильный ответ)*\n" \
         f"🤔Наибольшее время ожидания: *{max_wait * 60:.3f} минут*\n" \
         f"🏃‍♂️Самый быстрый ответ (❓): *{min_time:.3f} секунд*\n" \

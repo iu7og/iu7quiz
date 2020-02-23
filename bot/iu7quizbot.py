@@ -391,7 +391,11 @@ def send_stat(message):
     """
 
     student = Student.objects(user_id=message.chat.id).first()
-    bot.send_message(message.chat.id, stat.stat_msg(student), parse_mode="markdown")
+    if student.status == "standby":
+        bot.send_message(message.chat.id, stat.stat_msg(student), parse_mode="markdown")
+    else:
+        bot.send_message(message.chat.id,
+                         "⛔️ Прежде чем вызвать статистику, ответьте на вопросы бота.")
 
 
 @bot.message_handler(commands=["question"])
@@ -557,7 +561,7 @@ def query_handler_questions(call):
 
         # Обновить статистику.
         student.data = json.dumps(datastore)
-        student.qtime_start = 0
+        student.qtime_start = time.time()
         student.waiting_time = 0
 
         if cfg.DEV_MODE_QUEUE:
