@@ -32,9 +32,9 @@ def parse_to_mongo():
         best_time_to_answer = len("".join(data[0:5])) / SYMBOLS_PER_SECOND
         question = Question(
             day=i,
-            text=data[0],
-            answers=[data[j] for j in range(1, 5)],
-            correct_answer=data[5],
+            text=data[0].replace("\n", ""),
+            answers=[data[j].replace("\n", "") for j in range(1, 5)],
+            correct_answer=data[5].replace("\n", ""),
             best_time_to_answer=best_time_to_answer
         )
         question.save()
