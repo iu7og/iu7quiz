@@ -7,6 +7,7 @@
       (правильного или неправильного).
 """
 import time
+import json
 
 
 def ready_update(datastore, day, start_time):
@@ -44,7 +45,7 @@ def right_answer_handler(question_object, question, times_cortege, queue):
     # (p.s.: sum_len вычислялся по старой статистике (перед добавлением
     # нового правильного ответа)).
     if sum_len != 0 and len(question_object["wrong"]) > 0 and \
-        sum_len - question_object["wrong"][-1] < 2:
+            sum_len - question_object["wrong"][-1] < 2:
         days_left = 2 + sum_len
 
         i = 0
@@ -79,3 +80,41 @@ def wrong_answer_handler(question_object, question, queue):
     queue.pop(0)
 
     return question_object, question, queue
+
+
+def stat_msg(student):
+    """
+        Функция создания строки со статистикой за все время.
+    """
+
+    datastore = json.loads(student.data)
+    # 1 элемент - минимальное время ответа, 2 - вопрос, на который был дан ответ за это время.
+    min_time = datastore[0]["right"][0][1]
+    # Аналогично пункту выше, только для максимального времени ответа.
+    max_time = datastore[0]["right"][0][1]
+    alltime_right = 0
+    alltime_total = 0
+    # Аналогично 2 пунктам выше, только для максимального времени ожидания.
+    max_wait = datastore[0]["right"][0][0]
+
+    for question in datastore:
+        # Подсчет общего кол-ва ответов и правильных ответов.
+        alltime_right += len(question["right"])
+        alltime_total += len(question["right"]) + len(question["wrong"])
+
+        # Поиск лучшего и худшего времен ответа (учет только первой попытки).
+        if question["right"]:
+            if question["right"][0][1] > max_time:
+                max_time = question["right"][0][1]
+            if question["right"][0][1] < min_time:
+                min_time = question["right"][0][1]
+            if question["right"][0][0] > max_wait:
+                max_wait = question["right"][0][0]
+
+    total_stat = f"Процент правильных ответов: *{alltime_right / alltime_total * 100:.2f} (на " \
+        f"{alltime_right}/{alltime_total} был дан правильный ответ)*\n" \
+        f"🤔Наибольшее время ожидания: *{max_wait * 60:.3f} минут*\n" \
+        f"🏃‍♂️Самый быстрый ответ (❓): *{min_time:.3f} секунд*\n" \
+        f"🚶‍♂️Самый долгий ответ (❓): *{max_time:.3f} секунд*\n" \
+        "\n❓ - учитываются только первые попытки ответов"
+    return total_stat
