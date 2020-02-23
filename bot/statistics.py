@@ -8,6 +8,7 @@
 """
 import time
 import json
+import math
 
 
 def ready_update(datastore, day, start_time):
@@ -90,16 +91,16 @@ def stat_msg(student):
     datastore = json.loads(student.data)
 
     if not datastore:
-        return "Для вас еще нет статистики."
+        return "🧐Для вас еще нет статистики."
 
     # 1 элемент - минимальное время ответа, 2 - вопрос, на который был дан ответ за это время.
-    min_time = datastore[0]["right"][0][1]
+    min_time = math.inf
     # Аналогично пункту выше, только для максимального времени ответа.
-    max_time = datastore[0]["right"][0][1]
+    max_time = 0
     alltime_right = 0
     alltime_total = 0
     # Аналогично 2 пунктам выше, только для максимального времени ожидания.
-    max_wait = datastore[0]["right"][0][0]
+    max_wait = 0
 
     for question in datastore:
         # Подсчет общего кол-ва ответов и правильных ответов.
@@ -114,6 +115,9 @@ def stat_msg(student):
                 min_time = question["right"][0][1]
             if question["right"][0][0] > max_wait:
                 max_wait = question["right"][0][0]
+
+    if min_time == math.inf:
+        return "🧐Вы еще не давали правильных ответов на вопросы."
 
     total_stat = f"🧮Процент правильных ответов: *{alltime_right / alltime_total * 100:.2f}% (на " \
         f"{alltime_right}/{alltime_total} был дан правильный ответ)*\n" \
