@@ -6,7 +6,7 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
-from datetime import datetime
+from datetime import datetime, date
 from random import shuffle, choice, seed, randint
 
 import logging
@@ -180,8 +180,14 @@ def update_queue():
 
         # Кол-во дней ожидания у вопросов, которые уже находятся в очереди, уменьшается на 1
         # (p.s.: Если кол-во дней ожидания <= 0, то вопрос должен быть отправлен сегодня).
+        need_miss_msg = False
         for questions in student.queue:
             questions["days_left"] -= 1
+            if questions["days_left"] <= -cfg.MISS_DAYS:
+                need_miss_msg = True
+
+        if need_miss_msg:
+            bot.send_message(student.user_id, cfg.MISS_MESSAGE)
 
         # Вопрос дня добавляется на самое первое место
         for i in range(today_question_day * cfg.QUESTION_PORTION,
@@ -202,9 +208,10 @@ def end_notifications():
         Функция рассылки информации о том, что больше нельзя задавать вопросы лектору.
     """
 
-    for student in Student.objects(status__ne="registration"):
-        bot.send_message(student.user_id,
-                         "🛑 Начиная с этого момента вы больше не можете задать вопрос лектору.")
+    if date.today().isocalendar()[1] % 2:
+        for student in Student.objects(status__ne="registration"):
+            bot.send_message(student.user_id,
+                             "🛑 Начиная с этого момента вы больше не можете задать вопрос лектору.")
 
 
 def questions_notification():
@@ -212,10 +219,11 @@ def questions_notification():
         Функция рассылки информации о том, что можно задавать вопросы лектору.
     """
 
-    for student in Student.objects(status__ne="registration"):
-        bot.send_message(student.user_id, "📬")
-        bot.send_message(student.user_id,
-                         "Начиная с этого момента вы можете задать вопрос лектору.")
+    if date.today().isocalendar()[1] % 2:
+        for student in Student.objects(status__ne="registration"):
+            bot.send_message(student.user_id, "📬")
+            bot.send_message(student.user_id,
+                             "Начиная с этого момента вы можете задать вопрос лектору.")
 
 
 def schedule_bot():
@@ -374,6 +382,20 @@ def rules_message(message):
     else:
         bot.send_message(message.chat.id,
                          "⛔️ Прежде чем посмотреть правила, ответьте на вопросы бота.")
+
+
+@bot.message_handler(commands=["stat"])
+def send_stat(message):
+    """
+        Отправляет сообщение со статистикой при запросе пользователя (командой /stat).
+    """
+
+    student = Student.objects(user_id=message.chat.id).first()
+    if student.status == "standby":
+        bot.send_message(message.chat.id, stat.stat_msg(student), parse_mode="markdown")
+    else:
+        bot.send_message(message.chat.id,
+                         "⛔️ Прежде чем вызвать статистику, ответьте на вопросы бота.")
 
 
 @bot.message_handler(commands=["question"])
@@ -539,7 +561,7 @@ def query_handler_questions(call):
 
         # Обновить статистику.
         student.data = json.dumps(datastore)
-        student.qtime_start = 0
+        student.qtime_start = time.time()
         student.waiting_time = 0
 
         if cfg.DEV_MODE_QUEUE:

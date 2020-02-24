@@ -34,7 +34,7 @@ class Question(Document):
 
     day = IntField(required=True)
     text = StringField(required=True, max_length=300)
-    answers = ListField(StringField(required=True, max_length=100))
+    answers = ListField(StringField(required=True, max_length=200))
     correct_answer = StringField(required=True, max_length=1)
     best_time_to_answer = IntField(required=True)
     total_answers = IntField(required=True, default=0)
