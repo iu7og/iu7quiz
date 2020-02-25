@@ -240,6 +240,14 @@ def schedule_bot():
         schedule.run_pending()
         time.sleep(1)
 
+        
+@bot.message_handler(func=lambda msg: Student.objects(user_id=msg.chat.id).first() is None)
+def unregistered_handler(msg):
+    bot.send_message(msg.chat.id,
+        "🚫 Прежде чем пользоваться ботом, пожалуйста, напиши команду /start"
+    )
+    print("Айди клоуна: ", msg.chat.id, msg.chat.username)
+
 
 @bot.message_handler(commands=["start"])
 def authorization(message):
