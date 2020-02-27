@@ -262,8 +262,6 @@ def authorization(message):
         Выбор учебной группы для авторизации.
     """
 
-    message_to_log(message)
-
     if not Student.objects(user_id=message.chat.id):
 
         questions_queue = list()
@@ -323,7 +321,6 @@ def show_leaderboard(message):
         Вывод лидерборда среди учеников.
     """
 
-    message_to_log(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
@@ -360,7 +357,6 @@ def info_message(message):
         Информация о боте.
     """
 
-    message_to_log(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
@@ -377,7 +373,6 @@ def help_message(message):
         Помощь в использовании бота.
     """
 
-    message_to_log(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
@@ -410,7 +405,6 @@ def rules_message(message):
         Правила работы бота.
     """
 
-    message_to_log(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
@@ -430,8 +424,8 @@ def send_stat(message):
         Отправляет сообщение со статистикой при запросе пользователя (командой /stat).
     """
 
-    message_to_log(message)
     student = Student.objects(user_id=message.chat.id).first()
+
     if student.status == "standby":
         bot.send_message(message.chat.id, stat.stat_msg(student), parse_mode="markdown")
     else:
@@ -445,7 +439,6 @@ def live_question_handler(message):
         Задать вопрос преподавателю во время лекции.
     """
 
-    message_to_log(message)
     if student := Student.objects(user_id=message.chat.id):
         student = student.first()
 
@@ -480,7 +473,6 @@ def question_sender(msg):
         Пересылка вопроса преподавателю.
     """
 
-    message_to_log(msg)
     student = Student.objects(user_id=msg.chat.id).first()
 
     bot.send_message(cfg.LECTOR_ID, msg.text)
