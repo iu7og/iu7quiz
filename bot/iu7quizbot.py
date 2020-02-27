@@ -252,7 +252,7 @@ def message_to_log(message):
         "ID:", message.chat.id,
         "\nLOGIN:", message.chat.username,
         "\nMESSAGE:", message.text,
-        "\nTIME:" localtime(message.date)
+        "\nTIME:", localtime(message.date)
     )
 
 
