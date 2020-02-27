@@ -136,7 +136,7 @@ def send_confirmation():
 
     for student in Student.objects():
         if (student.status == "standby" or student.status == "live_question") \
-                and len(student.queue) and student.queue[0]["days_left"] <= 0:
+                and student.queue and student.queue[0]["days_left"] <= 0:
             student.status = "is_ready"
 
             # Функция возвращает измененный объект студента (имитация передачи по ссылке).
@@ -300,12 +300,20 @@ def authorization(message):
 
 @bot.message_handler(func=lambda msg: Student.objects(user_id=msg.chat.id).first() is None)
 def unregistered_handler(message):
+    """
+        Обработка пользователей, не написавших /start
+    """
+
     message_to_log(message)
     authorization(message)
 
 
 @bot.message_handler(func=lambda m: True)
 def handle_messages(message):
+    """
+        Сохранения простого сообщения в лог.
+    """
+
     message_to_log(message)
 
 
@@ -472,7 +480,7 @@ def question_sender(msg):
         Пересылка вопроса преподавателю.
     """
 
-    message_to_log(message)
+    message_to_log(msg)
     student = Student.objects(user_id=msg.chat.id).first()
 
     bot.send_message(cfg.LECTOR_ID, msg.text)
