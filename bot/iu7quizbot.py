@@ -134,7 +134,8 @@ def send_confirmation():
     """
 
     for student in Student.objects():
-        if student.status == "standby":
+        if student.status == "standby" and not len(student.queue) and \
+                student.queue[0]["days_left"] <= 0:
             student.status = "is_ready"
 
             # Функция возвращает измененный объект студента (имитация передачи по ссылке).
