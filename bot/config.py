@@ -64,6 +64,7 @@ WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
 # Флаг отладочной печати (если True, то она будет)
 DEV_MODE_RATING = False
 DEV_MODE_QUEUE = True
+SC_DEBUG = True
 
 # Настройки времени.
 FIRST_QUESTION_DAY = datetime(2020, 2, 25, 10, 0)

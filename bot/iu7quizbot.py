@@ -134,8 +134,15 @@ def send_confirmation():
     """
 
     for student in Student.objects():
-        if (student.status == "standby" or student.status == "live_question") \
-                and len(student.queue) and student.queue[0]["days_left"] <= 0:
+        if cfg.SC_DEBUG:
+            print("#SC_DEBUG")
+            print("student [status]:", student.username, f"[{student.status}]")
+            print("queue_len:", len(student.queue))
+            print("student.queue:", student.queue)
+            print("queue[0]:", student.queue[0])
+            print("big condition:", (student.status == "standby" or student.status == "question") \
+                  and len(student.queue) and student.queue[0]["days_left"] <= 0)
+        if student.status == "standby":
             student.status = "is_ready"
 
             # Функция возвращает измененный объект студента (имитация передачи по ссылке).
