@@ -136,7 +136,7 @@ def send_confirmation():
     for student in Student.objects():
         if cfg.SC_DEBUG:
             print("#SC_DEBUG")
-            print("student [status]:", student.username, f"[{student.status}]")
+            print("student [status]:", student.login, f"[{student.status}]")
             print("queue_len:", len(student.queue))
             print("student.queue:", student.queue)
             print("queue[0]:", student.queue[0])
