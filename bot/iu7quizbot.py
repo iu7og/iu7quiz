@@ -166,6 +166,8 @@ def send_single_confirmation(student, is_first):
         bot.send_message(student.user_id, message, reply_markup=markup)
     except telebot.apihelper.ApiException:
         print("Заблокировал бота:", student.user_id, student.login)
+    except Exception:
+        print("Произошла полная жесть...")
 
     return student
 
