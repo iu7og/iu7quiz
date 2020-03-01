@@ -168,8 +168,13 @@ def send_single_confirmation(student, is_first):
     else:
         message = "💡 У меня появился к Вам новый вопрос! Готовы ответить?"
 
-    bot.send_message(student.user_id, "📝")
-    bot.send_message(student.user_id, message, reply_markup=markup)
+    try:
+        bot.send_message(student.user_id, "📝")
+        bot.send_message(student.user_id, message, reply_markup=markup)
+    except telebot.apihelper.ApiException:
+        print("Заблокировал бота:", student.user_id, student.login)
+    except Exception:
+        print("Произошла полная жесть...")
 
     return student
 
