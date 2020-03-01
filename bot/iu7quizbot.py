@@ -135,8 +135,16 @@ def send_confirmation():
     """
 
     for student in Student.objects():
-        if (student.status == "standby" or student.status == "live_question") \
-                and student.queue and student.queue[0]["days_left"] <= 0:
+        if cfg.SC_DEBUG:
+            print("#SC_DEBUG")
+            print("student [status]:", student.login, f"[{student.status}]")
+            print("queue_len:", len(student.queue))
+            print("student.queue:", student.queue)
+            print("queue[0]:", student.queue[0])
+            print("big condition:", (student.status == "standby" or student.status == "question") \
+                  and len(student.queue) and student.queue[0]["days_left"] <= 0)
+
+        if student.status == "standby":
             student.status = "is_ready"
 
             # Функция возвращает измененный объект студента (имитация передачи по ссылке).
@@ -162,8 +170,13 @@ def send_single_confirmation(student, is_first):
     else:
         message = "💡 У меня появился к Вам новый вопрос! Готовы ответить?"
 
-    bot.send_message(student.user_id, "📝")
-    bot.send_message(student.user_id, message, reply_markup=markup)
+    try:
+        bot.send_message(student.user_id, "📝")
+        bot.send_message(student.user_id, message, reply_markup=markup)
+    except telebot.apihelper.ApiException:
+        print("Заблокировал бота:", student.user_id, student.login)
+    except Exception:
+        print("Произошла полная жесть...")
 
     return student
 
