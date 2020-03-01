@@ -244,9 +244,7 @@ def schedule_bot():
         Планировщик сообщений.
     """
 
-    schedule.every().tuesday.at("08:30").do(questions_notification)
     schedule.every().day.at("09:00").do(parse_to_mongo)
-    schedule.every().tuesday.at("10:05").do(end_notifications)
     schedule.every().day.at("10:05").do(update_queue)
 
     while True:
