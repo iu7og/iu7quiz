@@ -429,9 +429,9 @@ def live_question_handler(message):
                 student.last_live_q = time.time()
                 student.status = "live_question"
 
-                student.save()
-
                 bot.send_message(message.chat.id, "🖋️ Введите ваш вопрос:")
+
+                student.save()
             else:
                 spam_time = int(cfg.LIVE_Q_DELAY - (time.time() - student.last_live_q))
                 time_msg = f"⏰ Подождите {spam_time} секунд прежде чем еще раз задавать вопрос."
