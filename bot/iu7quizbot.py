@@ -6,6 +6,7 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
+from time import localtime
 from datetime import datetime, date
 from random import shuffle, choice, seed, randint
 
@@ -142,6 +143,7 @@ def send_confirmation():
             print("queue[0]:", student.queue[0])
             print("big condition:", (student.status == "standby" or student.status == "question") \
                   and len(student.queue) and student.queue[0]["days_left"] <= 0)
+
         if student.status == "standby":
             student.status = "is_ready"
 
@@ -256,7 +258,20 @@ def schedule_bot():
         schedule.run_pending()
         time.sleep(1)
 
-        
+
+def message_to_log(message):
+    """
+        Сохранение сообщения в лог.
+    """
+
+    print(
+        "ID:", message.chat.id,
+        "\nLOGIN:", message.chat.username,
+        "\nMESSAGE:", message.text,
+        "\nTIME:", localtime(message.date)
+    )
+
+
 @bot.message_handler(commands=["start"])
 def authorization(message):
     """
@@ -298,9 +313,22 @@ def authorization(message):
 
 
 @bot.message_handler(func=lambda msg: Student.objects(user_id=msg.chat.id).first() is None)
-def unregistered_handler(msg):
-    authorization(msg)
-    print("Айди клоуна: ", msg.chat.id, msg.chat.username)
+def unregistered_handler(message):
+    """
+        Обработка пользователей, не написавших /start
+    """
+
+    message_to_log(message)
+    authorization(message)
+
+
+@bot.message_handler(func=lambda m: True)
+def handle_messages(message):
+    """
+        Сохранения простого сообщения в лог.
+    """
+
+    message_to_log(message)
 
 
 @bot.message_handler(commands=["leaderboard"])
@@ -413,6 +441,7 @@ def send_stat(message):
     """
 
     student = Student.objects(user_id=message.chat.id).first()
+
     if student.status == "standby":
         bot.send_message(message.chat.id, stat.stat_msg(student), parse_mode="markdown")
     else:
