@@ -199,8 +199,13 @@ def update_queue():
             if questions["days_left"] <= -cfg.MISS_DAYS:
                 need_miss_msg = True
 
-        if need_miss_msg:
-            bot.send_message(student.user_id, cfg.MISS_MESSAGE)
+        try:
+            if need_miss_msg:
+                bot.send_message(student.user_id, cfg.MISS_MESSAGE)
+        except telebot.apihelper.ApiException:
+            pass
+        except Exception:
+            print("Произошла полная жесть... (need_msg)")
 
         # Вопрос дня добавляется на самое первое место
         for i in range(today_question_day * cfg.QUESTION_PORTION,
