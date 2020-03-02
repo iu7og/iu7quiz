@@ -6,11 +6,11 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
-from time import localtime
 from datetime import datetime, date
 from random import shuffle, choice, seed, randint
 
 import logging
+import traceback
 import ssl
 
 import json
@@ -264,11 +264,11 @@ def message_to_log(message):
         Сохранение сообщения в лог.
     """
 
-    print(
-        "ID:", message.chat.id,
-        "\nLOGIN:", message.chat.username,
-        "\nMESSAGE:", message.text,
-        "\nTIME:", localtime(message.date)
+    bot.send_message(
+        cfg.CHANNEL_ID,
+        f"ID: {message.chat.id}" +
+        f"\nLOGIN: {message.chat.username}" +
+        f"\nMESSAGE: {message.text}"
     )
 
 
@@ -661,11 +661,15 @@ def query_handler_scroll(call):
 
 
 if __name__ == "__main__":
-    multiprocessing.Process(target=schedule_bot, args=()).start()
+    try:
+        multiprocessing.Process(target=schedule_bot, args=()).start()
 
-    web.run_app(
-        app,
-        host=cfg.WEBHOOK_LISTEN,
-        port=cfg.WEBHOOK_PORT,
-        ssl_context=context,
-    )
+        web.run_app(
+            app,
+            host=cfg.WEBHOOK_LISTEN,
+            port=cfg.WEBHOOK_PORT,
+            ssl_context=context,
+        )
+
+    except:
+        bot.send_message(cfg.CHANNEL_ID, traceback.format_exc())
