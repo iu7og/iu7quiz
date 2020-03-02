@@ -10,6 +10,7 @@ from datetime import datetime, date
 from random import shuffle, choice, seed, randint
 
 import logging
+import traceback
 import ssl
 
 import json
@@ -660,11 +661,15 @@ def query_handler_scroll(call):
 
 
 if __name__ == "__main__":
-    multiprocessing.Process(target=schedule_bot, args=()).start()
+    try:
+        multiprocessing.Process(target=schedule_bot, args=()).start()
 
-    web.run_app(
-        app,
-        host=cfg.WEBHOOK_LISTEN,
-        port=cfg.WEBHOOK_PORT,
-        ssl_context=context,
-    )
+        web.run_app(
+            app,
+            host=cfg.WEBHOOK_LISTEN,
+            port=cfg.WEBHOOK_PORT,
+            ssl_context=context,
+        )
+
+    except:
+        bot.send_message(cfg.CHANNEL_ID, traceback.format_exc())
