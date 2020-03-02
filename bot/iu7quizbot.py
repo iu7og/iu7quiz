@@ -266,9 +266,9 @@ def message_to_log(message):
 
     bot.send_message(
         cfg.CHANNEL_ID,
-        "ID: " + str(message.chat.id) +
-        "\nLOGIN: " + message.chat.username +
-        "\nMESSAGE: " + message.text
+        f"ID: {message.chat.id}" +
+        f"\nLOGIN: {message.chat.username}" +
+        f"\nMESSAGE: {message.text}"
     )
 
 
