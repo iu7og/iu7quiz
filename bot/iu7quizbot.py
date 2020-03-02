@@ -6,7 +6,6 @@
       "Программирование на СИ", путём рассылки вопросов по прошедшим лекциям.
 """
 
-from time import localtime
 from datetime import datetime, date
 from random import shuffle, choice, seed, randint
 
@@ -264,11 +263,11 @@ def message_to_log(message):
         Сохранение сообщения в лог.
     """
 
-    print(
-        "ID:", message.chat.id,
-        "\nLOGIN:", message.chat.username,
-        "\nMESSAGE:", message.text,
-        "\nTIME:", localtime(message.date)
+    bot.send_message(
+        cfg.CHANNEL_ID,
+        "ID: " + str(message.chat.id) +
+        "\nLOGIN: " + message.chat.username +
+        "\nMESSAGE: " + message.text
     )
 
 

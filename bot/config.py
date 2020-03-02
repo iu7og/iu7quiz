@@ -30,6 +30,7 @@ READY_BTN = "Готов"
 LB_MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 LB_PAGE_SIZE = 10
 LECTOR_ID = os.environ['LECTOR']
+CHANNEL_ID = os.environ['CHANNEL']
 LIVE_Q_DELAY = 60
 # Здесь указывается дата первой лекции, от нее ведется отсчет.
 FIRST_CLASS_DAY = datetime(2020, 2, 11, 8, 30)
