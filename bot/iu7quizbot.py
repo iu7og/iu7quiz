@@ -322,14 +322,6 @@ def unregistered_handler(message):
     authorization(message)
 
 
-@bot.message_handler(func=lambda m: True)
-def handle_messages(message):
-    """
-        Сохранения простого сообщения в лог.
-    """
-
-    message_to_log(message)
-
 
 @bot.message_handler(commands=["leaderboard"])
 def show_leaderboard(message):
@@ -337,6 +329,7 @@ def show_leaderboard(message):
         Вывод лидерборда среди учеников.
     """
 
+    handle_messages(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
@@ -373,6 +366,7 @@ def info_message(message):
         Информация о боте.
     """
 
+    handle_messages(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
@@ -389,6 +383,7 @@ def help_message(message):
         Помощь в использовании бота.
     """
 
+    handle_messages(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
@@ -421,6 +416,7 @@ def rules_message(message):
         Правила работы бота.
     """
 
+    handle_messages(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby":
@@ -440,6 +436,7 @@ def send_stat(message):
         Отправляет сообщение со статистикой при запросе пользователя (командой /stat).
     """
 
+    handle_messages(message)
     student = Student.objects(user_id=message.chat.id).first()
 
     if student.status == "standby":
@@ -455,6 +452,7 @@ def live_question_handler(message):
         Задать вопрос преподавателю во время лекции.
     """
 
+    handle_messages(message)
     if student := Student.objects(user_id=message.chat.id):
         student = student.first()
 
@@ -484,6 +482,7 @@ def question_sender(msg):
         Пересылка вопроса преподавателю.
     """
 
+    handle_messages(msg)
     student = Student.objects(user_id=msg.chat.id).first()
 
     bot.send_message(cfg.LECTOR_ID, msg.text)
@@ -491,6 +490,15 @@ def question_sender(msg):
 
     student.status = "standby"
     student.save()
+
+
+@bot.message_handler(func=lambda m: True)
+def handle_messages(message):
+    """
+        Сохранения простого сообщения в лог.
+    """
+
+    message_to_log(message)
 
 
 @bot.callback_query_handler(lambda call: call.data in cfg.GROUPS_BTNS)
