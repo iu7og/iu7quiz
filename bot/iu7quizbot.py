@@ -458,6 +458,11 @@ def send_stat(message):
                          "⛔️ Прежде чем вызвать статистику, ответьте на вопросы бота.")
 
 
+@bot.message_handler(commands=["donate"])
+def donate(message):
+    pass # передай передай
+
+
 @bot.message_handler(commands=["question"])
 def live_question_handler(message):
     """
