@@ -648,7 +648,7 @@ def query_handler_questions(call):
             student.status = "standby"
             bot.send_message(call.message.chat.id,
                              "🏁 На сегодня у меня нет больше к тебе вопросов, до завтра!")
-            show_leaderboard(message)
+            show_leaderboard(call.message)
 
         student.save()
 
