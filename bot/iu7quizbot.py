@@ -245,6 +245,16 @@ def questions_notification():
             bot.send_message(student.user_id,
                              "Начиная с этого момента вы можете задать вопрос лектору.")
 
+            
+def send_reminder():
+    """
+        Рассылка с напоминанием для тех, кто не нажал на кнопку "Готов"
+    """
+
+    for student in Student.objects(status="is_ready"):
+        bot.send_message(student.user_id,
+                        "Ты совсем забыл про меня 🥺 Может найдешь минутку и ответишь на мои вопросы?")
+
 
 def schedule_bot():
     """
@@ -253,6 +263,7 @@ def schedule_bot():
 
     schedule.every().day.at("09:00").do(parse_to_mongo)
     schedule.every().day.at("10:05").do(update_queue)
+    schedule.every().day.at("21:00").do(send_reminder)
 
     while True:
         schedule.run_pending()
@@ -632,9 +643,11 @@ def query_handler_questions(call):
         else:
             if cfg.DEV_MODE_QUEUE:
                 print("No more questions for today")
+
             student.status = "standby"
             bot.send_message(call.message.chat.id,
                              "🏁 На сегодня у меня нет больше к тебе вопросов, до завтра!")
+            show_leaderboard(message)
 
         student.save()
 
