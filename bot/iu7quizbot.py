@@ -340,7 +340,6 @@ def show_leaderboard(message):
         Вывод лидерборда среди учеников.
     """
 
-    handle_messages(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
