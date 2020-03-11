@@ -649,7 +649,7 @@ def query_handler_questions(call):
             student.save()
             bot.send_message(call.message.chat.id,
                              "🏁 На сегодня у меня нет больше к тебе вопросов, до завтра!")
-            show_leaderboard(call.message)
+            show_leaderboard(call)
 
         student.save()
 
@@ -684,15 +684,12 @@ def query_handler_scroll(call):
 
 
 if __name__ == "__main__":
-    try:
-        multiprocessing.Process(target=schedule_bot, args=()).start()
+    multiprocessing.Process(target=schedule_bot, args=()).start()
 
-        web.run_app(
-            app,
-            host=cfg.WEBHOOK_LISTEN,
-            port=cfg.WEBHOOK_PORT,
-            ssl_context=context,
-        )
+    web.run_app(
+        app,
+        host=cfg.WEBHOOK_LISTEN,
+        port=cfg.WEBHOOK_PORT,
+        ssl_context=context,
+    )
 
-    except:
-        bot.send_message(cfg.CHANNEL_ID, traceback.format_exc())
