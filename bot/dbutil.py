@@ -43,7 +43,7 @@ def form_request(message):
         return {"command": splitted[1]}
 
     elif len(splitted) == 3:
-        return {"command": splitted[1], "status": splitted[2]}
+        return {"command": splitted[1], "data" : {"status": splitted[2]}}
 
     elif len(splitted) == 4:
         command = splitted[1]
@@ -116,9 +116,9 @@ def blocked_users_message(users):
         Формирование сообщения о заблокированных пользователях.
     """
 
-    msg = f""
+    msg = ""
     for user in users:
-        msg += f"user['login'] user['id']\n"
+        msg += user["login"] + str(user["id"]) + "\n"
 
     return msg
 

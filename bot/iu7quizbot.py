@@ -488,7 +488,7 @@ def live_question_handler(message):
 
 
 @bot.message_handler(commands=["dev"], func=lambda message: message.from_user.id == cfg.CHANNEL_ID)
-def dev_handler():
+def dev_handler(message):
     """
         Обработка запросов от разработчиков.
     """
