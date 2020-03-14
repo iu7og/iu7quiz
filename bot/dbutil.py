@@ -5,7 +5,9 @@
       Работа с БД прямыми запросами.
 """
 
-from bot.dbinstances import parse_to_mongo
+from telebot apihelper
+
+from bot.gsparser import parse_to_mongo
 from bot.iu7quizbot import update_queue, send_confirmation, bot
 from bot.config import ALLOWED_STATUS
 from bot.dbinstances import Student, Question
@@ -27,6 +29,8 @@ def usage():
         "\t7. Посмотреть статус юзера - /dev status <id>\n" + \
         "\t8. Изменить статус юзера - /dev change_status <id> <status>\n\n" + \
         "❗️ Узнать ID: @userinfobot"
+
+    return msg
 
 
 def form_request(message):
@@ -75,7 +79,7 @@ def upd_queue_handler():
 
     try:
         update_queue()
-    except:
+    except Exception:
         return "❌ При выполнение update_queue возникла ошибка"
 
     return "✅ update_queue успешно выполнена"
@@ -88,7 +92,7 @@ def send_confirm_handler():
 
     try:
         send_confirmation()
-    except:
+    except Exception:
         return "❌ При выполнение send_confirmation возникла ошибка"
 
     return "✅ send_confirmation успешно выполнена"
@@ -101,7 +105,7 @@ def parse_mongo_handler():
 
     try:
         parse_to_mongo()
-    except:
+    except Exception:
         return "❌ При выполнение parse_to_mongo возникла ошибка"
 
     return "✅ parse_to_mongo успешно выполнена"
@@ -134,7 +138,7 @@ def message_by_status(data):
     for student in Student.objects(status=data["status"]):
         try:
             bot.send_message(student.user_id, data["message"])
-        except:
+        except apihelper.ApiException:
             blocked_id.append({"login": student.login, "id": student.user_id})
 
     if blocked_id:
@@ -174,7 +178,7 @@ def check_last_question():
 
     msg = "Последние 3 вопроса в ДБ:\n"
     for question in last3_qst:
-        msg += questions.text + "\n"
+        msg += question.text + "\n"
 
     return msg
 
@@ -197,7 +201,7 @@ def update_status(data):
         Задача состояния (статуса) юзера в ручную.
     """
 
-    if status not in ALLOWED_STATUS:
+    if data["status"] not in ALLOWED_STATUS:
         return f"✅ Статуса {data['status']} не существует."
 
     if student:= Student.objects(user_id=data["id"]) is None:
@@ -211,6 +215,10 @@ def update_status(data):
 
 
 def dev_menu(request):
+    """
+        Обращение к внутренностям бота.
+    """
+
     menu = {
         "updqueue": upd_queue_handler,
         "sndconfirm": send_confirm_handler,
@@ -225,7 +233,7 @@ def dev_menu(request):
     }
 
     if request["command"] in menu:
-        func = menu.get(reuqeust["command"])
+        func = menu.get(reqeust["command"])
     else:
         return usage()
 
