@@ -5,7 +5,7 @@
       Работа с БД прямыми запросами.
 """
 
-from telebot apihelper
+from telebot import apihelper
 
 from bot.gsparser import parse_to_mongo
 from bot.iu7quizbot import update_queue, send_confirmation, bot
