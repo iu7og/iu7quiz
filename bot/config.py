@@ -36,6 +36,7 @@ LIVE_Q_DELAY = 60
 FIRST_CLASS_DAY = datetime(2020, 2, 11, 8, 30)
 CLASS_OFFSET = 14  # Время в днях до следующей лекции.
 CLASS_DURATION = 5400  # Длительность лекции в секундах.
+ALLOWED_STATUS = ["standby", "is_ready", "question", "registration", "live_question"]
 
 # Конфигурация рейтинговой системы.
 # Коэффициенты главной формулы.
