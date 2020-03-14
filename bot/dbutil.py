@@ -16,15 +16,15 @@ def usage():
     """
 
     msg = "🔥 IU7QUIZ DB UTIL\nДоступные команды:" + \
-        "\t1. Вызввать update_queue - /dev updqueue\n"
-        "\t2. Вызвать send_confirmation - /dev sndconfirm\n"
-        "\t3. Вызвать parse_to_mongo - /dev prsmongo\n"
-        "\t4. Разослать сообщение - /dev sendmsg <status> <сообщение>\n"
-        "\t4. Разослать сообщение по ID - /dev sendmsgid <id> <сообщение>\n"
-        "\t5. Состояние фонового процесса - /dev checkproc\n"
-        "\t6. Посмотреть последний загруженный вопрос - /dev lastquest\n"
-        "\t7. Посмотреть статус юзера - /dev status <id>\n"
-        "\t8. Изменить статус юзера - /dev change_status <id> <status>\n\n"
+        "\t1. Вызввать update_queue - /dev updqueue\n" + \
+        "\t2. Вызвать send_confirmation - /dev sndconfirm\n" + \
+        "\t3. Вызвать parse_to_mongo - /dev prsmongo\n" + \
+        "\t4. Разослать сообщение - /dev sendmsg <status> <сообщение>\n" + \
+        "\t4. Разослать сообщение по ID - /dev sendmsgid <id> <сообщение>\n" + \
+        "\t5. Состояние фонового процесса - /dev checkproc\n" + \
+        "\t6. Посмотреть последний загруженный вопрос - /dev lastquest\n" + \
+        "\t7. Посмотреть статус юзера - /dev status <id>\n" + \
+        "\t8. Изменить статус юзера - /dev change_status <id> <status>\n\n" + \
         "❗️ Узнать ID: @userinfobot"
 
 
@@ -56,7 +56,7 @@ def form_request(message):
                 "data": {"id": int(splitted[2]), "message": message}
             }
 
-        elif:
+        else:
             request = {
                 "command": command,
                 "data": {"id": int(splitted[2]), "status": splitted[3]}
@@ -199,12 +199,10 @@ def update_status(data):
     if status not in ALLOWED_STATUS:
         return f"✅ Статуса {data['status']} не существует."
 
-    if student:= Student.objects(user_id=data["id") is None:
+    if student:= Student.objects(user_id=data["id"]) is None:
         return f"❌ ID {data['user_id']} нет в БД."
 
     student = student.first()
-        return f"✅ Статуса {data['status']} не существует."
-
     student.status = data["status"]
     student.save()
 
