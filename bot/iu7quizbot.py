@@ -24,6 +24,7 @@ from aiohttp import web
 import bot.config as cfg
 import bot.statistics as stat
 import bot.rating as rt
+import dbutil
 from bot.dbinstances import Student, Question
 from bot.gsparser import parse_to_mongo
 
@@ -340,6 +341,7 @@ def show_leaderboard(message):
         Вывод лидерборда среди учеников.
     """
 
+    message_to_log(message)
     student = Student.objects(user_id=message.from_user.id).first()
 
     if student.status == "standby" and int(time.time()) - student.lb_timeout > cfg.LB_TIMEOUT:
@@ -483,6 +485,17 @@ def live_question_handler(message):
         else:
             bot.send_message(
                 message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
+
+
+@bot.message_handler(commands=["dev"], func=lambda message: message.from_user.id == cfg.CHANNEL_ID)
+def dev_handler(message):
+    """
+        Обработка запросов от разработчиков.
+    """
+
+    request = dbutil.form_request(message.text)
+    reply_message = dbutil.dev_menu(request)
+    bot.send_message(cfg.CHANNEL_ID, reply_message)
 
 
 @bot.message_handler(
@@ -688,4 +701,3 @@ if __name__ == "__main__":
         port=cfg.WEBHOOK_PORT,
         ssl_context=context,
     )
-
