@@ -18,7 +18,7 @@ def usage():
         Информаиця об использовании утилиты.
     """
 
-    msg = "🔥 IU7QUIZ DB UTIL\nДоступные команды:" + \
+    msg = "🔥 IU7QUIZ DB UTIL\n🦆 Доступные команды:" + \
         "\t1. Вызввать update_queue - /dev updqueue\n" + \
         "\t2. Вызвать send_confirmation - /dev sndconfirm\n" + \
         "\t3. Вызвать parse_to_mongo - /dev prsmongo\n" + \
@@ -28,7 +28,8 @@ def usage():
         "\t6. Посмотреть последний загруженный вопрос - /dev lastquest\n" + \
         "\t7. Посмотреть статус юзера - /dev status <id>\n" + \
         "\t8. Изменить статус юзера - /dev change_status <id> <status>\n\n" + \
-        "❗️ Узнать ID: @userinfobot"
+        "❗️В сообщении все пробелы заменить на _\n" + \
+        "❗️Узнать ID: @userinfobot"
 
     return msg
 
@@ -47,7 +48,7 @@ def form_request(message):
 
     elif len(splitted) == 4:
         command = splitted[1]
-        message = splitted[3]
+        message = splitted[3].replace("_", " ")
 
         if command == "sendmsg":
             request = {
