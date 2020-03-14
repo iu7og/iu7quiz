@@ -142,9 +142,11 @@ def message_by_status(data):
             blocked_id.append({"login": student.login, "id": student.user_id})
 
     if blocked_id:
-        return "⚠️ Не удалось отправить сообщения для:\n" + blocked_users_message(blocked_id)
+        info = "⚠️ Не удалось отправить сообщения для:\n" + blocked_users_message(blocked_id)
     else:
-        return f"✅ Сообщение для юзеров со стаусом {data['status']} успешно отправленно."
+        info = f"✅ Сообщение для юзеров со стаусом {data['status']} успешно отправленно."
+
+    return info
 
 
 def message_by_id(data):
@@ -223,12 +225,12 @@ def dev_menu(request):
         "updqueue": upd_queue_handler,
         "sndconfirm": send_confirm_handler,
         "prsmongo": parse_mongo_handler,
-        "sendmsg": lambda data: message_by_status(data),
-        "sendmsgid": lambda data: message_by_id(data),
+        "sendmsg": message_by_status,
+        "sendmsgid": message_by_id,
         "checkproc": check_process,
         "lastquest": check_last_question,
-        "status": lambda data: check_status(data),
-        "change_status": lambda data: update_status(data),
+        "status": check_status,
+        "change_status": update_status,
         "usage": usage
     }
 
