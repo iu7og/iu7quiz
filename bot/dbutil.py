@@ -8,6 +8,7 @@
 from bot.dbinstances import parse_to_mongo
 from bot.iu7quizbot import update_queue, send_confirmation, bot
 from bot.config import ALLOWED_STATUS
+from bot.dbinstances import Student, Question
 
 
 def usage():
@@ -219,7 +220,7 @@ def dev_menu(request):
         "checkproc": check_process,
         "lastquest": check_last_question,
         "status": lambda data: check_status(data),
-        "change_status": lambda data: change_status(data),
+        "change_status": lambda data: update_status(data),
         "usage": usage
     }
 

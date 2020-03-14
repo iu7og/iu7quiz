@@ -487,16 +487,15 @@ def live_question_handler(message):
                 message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
-@bot.message_handler(commands=["dev"], func=lambda message: message.from_user.id == CHANNEL_ID)
+@bot.message_handler(commands=["dev"], func=lambda message: message.from_user.id == cfg.CHANNEL_ID)
 def dev_handler():
     """
         Обработка запросов от разработчиков.
     """
 
     request = dbutil.form_request(message.text)
-    reply_message = dev_menu(request)
-    bot.send_message(CHANNEL_ID, reply_message)
-
+    reply_message = dbutil.dev_menu(request)
+    bot.send_message(cfg.CHANNEL_ID, reply_message)
 
 
 @bot.message_handler(
