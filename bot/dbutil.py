@@ -40,10 +40,10 @@ def form_request(message):
 
     splitted = message.split()
     if len(splitted) == 2:
-        return {"command": splitted[1]}
+        request = {"command": splitted[1]}
 
     elif len(splitted) == 3:
-        return {"command": splitted[1], "data" : {"status": splitted[2]}}
+        request = {"command": splitted[1], "data" : {"status": splitted[2]}}
 
     elif len(splitted) == 4:
         command = splitted[1]
@@ -66,10 +66,10 @@ def form_request(message):
                 "command": command,
                 "data": {"id": int(splitted[2]), "status": splitted[3]}
             }
+    else:
+        request = {"command": "usage"}
 
-        return request
-
-    return {"command": "usage"}
+    return request
 
 
 def upd_queue_handler():
@@ -233,11 +233,8 @@ def dev_menu(request):
     }
 
     if request["command"] in menu:
-        func = menu.get(reqeust["command"])
+        func = menu.get(request["command"])
     else:
-        return usage()
+        func = menu.get("usage")
 
-    if "data" in request:
-        return func(request["data"])
-    else:
-        return func()
+    return func(request["data"]) if "data" in request else func()
