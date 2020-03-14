@@ -18,7 +18,7 @@ def usage():
         Информаиця об использовании утилиты.
     """
 
-    msg = "🔥 IU7QUIZ DB UTIL\n🦆 Доступные команды:" + \
+    msg = "🔥 IU7QUIZ DB UTIL\nДоступные команды:" + \
         "\t1. Вызввать update_queue - /dev updqueue\n" + \
         "\t2. Вызвать send_confirmation - /dev sndconfirm\n" + \
         "\t3. Вызвать parse_to_mongo - /dev prsmongo\n" + \
@@ -28,8 +28,7 @@ def usage():
         "\t6. Посмотреть последний загруженный вопрос - /dev lastquest\n" + \
         "\t7. Посмотреть статус юзера - /dev status <id>\n" + \
         "\t8. Изменить статус юзера - /dev change_status <id> <status>\n\n" + \
-        "❗️В сообщении все пробелы заменить на _\n" + \
-        "❗️Узнать ID: @userinfobot"
+        "❗️ Узнать ID: @userinfobot"
 
     return msg
 
@@ -44,11 +43,11 @@ def form_request(message):
         request = {"command": splitted[1]}
 
     elif len(splitted) == 3:
-        request = {"command": splitted[1], "data" : {"status": splitted[2]}}
+        request = {"command": splitted[1], "data" : {"id": splitted[2]}}
 
     elif len(splitted) == 4:
         command = splitted[1]
-        message = splitted[3].replace("_", " ")
+        message = splitted[3]
 
         if command == "sendmsg":
             request = {
@@ -191,8 +190,8 @@ def check_status(data):
         Получение информации о состоянии (статуса) юзера.
     """
 
-    if student:= Student.objects(user_id=data["user_id"]) is None:
-        return f"❌ ID {data['user_id']} нет в БД."
+    if (student := Student.objects(user_id=data["id"])) is None:
+        return f"❌ ID {data['id']} нет в БД."
 
     student = student.first()
 
@@ -205,9 +204,9 @@ def update_status(data):
     """
 
     if data["status"] not in ALLOWED_STATUS:
-        return f"✅ Статуса {data['status']} не существует."
+        return f"❌ Статуса {data['status']} не существует."
 
-    if student:= Student.objects(user_id=data["id"]) is None:
+    if (student:= Student.objects(user_id=data["id"])) is None:
         return f"❌ ID {data['user_id']} нет в БД."
 
     student = student.first()
