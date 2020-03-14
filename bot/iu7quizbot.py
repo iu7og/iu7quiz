@@ -1,4 +1,4 @@
-t"""
+"""
       ===== IU7QUIZ TELEGRAM BOT =====
       Copyright (C) 2020 IU7OG Team.
 
