@@ -498,6 +498,9 @@ def dev_handler(message):
         Обработка запросов от разработчиков.
     """
 
+    print(message.chat.id, cfg.DEV_ID)
+    print("\n\n\n\n", message)
+
     if message.chat.id == cfg.DEV_ID:
         request = dbutil.form_request(message.text)
         print(request)
