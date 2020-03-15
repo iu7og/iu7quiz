@@ -54,6 +54,7 @@ async def handle(request):
 app.router.add_post("/{token}/", handle)
 
 bot.remove_webhook()
+time.sleep(1)
 bot.set_webhook(url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH)
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
