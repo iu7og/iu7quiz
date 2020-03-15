@@ -492,16 +492,20 @@ def live_question_handler(message):
                 message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
-@bot.message_handler(commands=["dev"], func=lambda message: message.chat.id == cfg.DEV_ID)
+@bot.message_handler(commands=["dev"])
 def dev_handler(message):
     """
         Обработка запросов от разработчиков.
     """
 
-    request = dbutil.form_request(message.text)
-    print(request)
-    reply_message = dbutil.dev_menu(request)
-    bot.send_message(cfg.DEV_ID, reply_message)
+    if message.chat.id == cfg.DEV_ID:
+        request = dbutil.form_request(message.text)
+        print(request)
+        reply_message = dbutil.dev_menu(request)
+        bot.send_message(cfg.DEV_ID, reply_message)
+    else:
+        bot.send_message(message.chat.id, "⛔Доступ запрещён.")
+
 
 
 @bot.message_handler(
