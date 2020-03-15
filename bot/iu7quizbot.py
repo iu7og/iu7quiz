@@ -334,7 +334,6 @@ def unregistered_handler(message):
     authorization(message)
 
 
-
 @bot.message_handler(commands=["leaderboard"])
 def show_leaderboard(message):
     """
@@ -487,7 +486,7 @@ def live_question_handler(message):
                 message.chat.id, "⛔ Прежде чем задавать вопросы, ответьте на вопросы бота.")
 
 
-@bot.message_handler(commands=["dev"], func=lambda message: message.from_user.id == cfg.DEV_ID)
+@bot.message_handler(commands=["dev"], func=lambda message: message.chat.id == cfg.DEV_ID)
 def dev_handler(message):
     """
         Обработка запросов от разработчиков.
