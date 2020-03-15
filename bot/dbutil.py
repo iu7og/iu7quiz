@@ -196,7 +196,7 @@ def check_status(data):
         Получение информации о состоянии (статуса) юзера.
     """
 
-    if (student:= Student.objects(user_id=data["id"].first())) is None:
+    if (student:= Student.objects(user_id=data["id"]).first()) is None:
         return f"❌ ID {data['id']} нет в БД."
 
     return f"ID: {student.user_id}, статус: {student.status}"
