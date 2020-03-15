@@ -279,11 +279,6 @@ def message_to_log(message):
 
     bot.send_message(
         cfg.CHANNEL_ID,
-        message
-    )
-
-    bot.send_message(
-        cfg.CHANNEL_ID,
         f"ID: {message.chat.id}" +
         f"\nLOGIN: {message.chat.username}" +
         f"\nMESSAGE: {message.text}"
@@ -500,7 +495,6 @@ def dev_handler(message):
 
     if message.chat.id == cfg.DEV_ID:
         request = dbutil.form_request(message.text)
-        print(request)
         reply_message = dbutil.dev_menu(request)
         bot.send_message(cfg.DEV_ID, reply_message)
 

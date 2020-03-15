@@ -18,7 +18,7 @@ def usage():
         Информаиця об использовании утилиты.
     """
 
-    msg = "🔥 IU7QUIZ DB UTIL\nДоступные команды:" + \
+    msg = "🔥  IU7QUIZ DB UTIL 🔥 \nДоступные команды:" + \
         "\t1. Вызввать update_queue - /dev updqueue\n" + \
         "\t2. Вызвать send_confirmation - /dev sndconfirm\n" + \
         "\t3. Вызвать parse_to_mongo - /dev prsmongo\n" + \
@@ -27,7 +27,8 @@ def usage():
         "\t5. Состояние фонового процесса - /dev checkproc\n" + \
         "\t6. Посмотреть последний загруженный вопрос - /dev lastquest\n" + \
         "\t7. Посмотреть статус юзера - /dev status <id>\n" + \
-        "\t8. Изменить статус юзера - /dev change_status <id> <status>\n\n" + \
+        "\t8. Изменить статус юзера - /dev change_status <id> <status>\n" + \
+        "\t9. Удалить юзера из БД - /dev delete <id>\n\n" + \
         "❗️ Узнать ID: @userinfobot"
 
     return msg
@@ -47,7 +48,7 @@ def form_request(message):
 
     elif len(splitted) == 4:
         command = splitted[1]
-        message = splitted[3]
+        message = splitted[3].replace("_", " ")
 
         if command == "sendmsg":
             request = {
@@ -80,9 +81,9 @@ def upd_queue_handler():
     try:
         update_queue()
     except Exception:
-        return "❌ При выполнение update_queue возникла ошибка"
+        return "❌ При выполнение update_queue возникла ошибка."
 
-    return "✅ update_queue успешно выполнена"
+    return "✅ update_queue успешно выполнена."
 
 
 def send_confirm_handler():
@@ -93,9 +94,9 @@ def send_confirm_handler():
     try:
         send_confirmation()
     except Exception:
-        return "❌ При выполнение send_confirmation возникла ошибка"
+        return "❌ При выполнение send_confirmation возникла ошибка."
 
-    return "✅ send_confirmation успешно выполнена"
+    return "✅ send_confirmation успешно выполнена."
 
 
 def parse_mongo_handler():
@@ -106,9 +107,9 @@ def parse_mongo_handler():
     try:
         parse_to_mongo()
     except Exception:
-        return "❌ При выполнение parse_to_mongo возникла ошибка"
+        return "❌ При выполнение parse_to_mongo возникла ошибка."
 
-    return "✅ parse_to_mongo успешно выполнена"
+    return "✅ parse_to_mongo успешно выполнена."
 
 
 def blocked_users_message(users):
@@ -129,10 +130,10 @@ def message_by_status(data):
     """
 
     if len(data) != 2:
-        return "❌ Неверно заданны аргументы. См. /dev usage"
+        return "❌ Неверно заданны аргументы. См. /dev usage."
 
     if data["status"] not in ALLOWED_STATUS:
-        return f"✅ Статуса {data['status']} не существует."
+        return f"❌ Статуса {data['status']} не существует."
 
     blocked_id = []
     for student in Student.objects(status=data["status"]):
@@ -154,10 +155,15 @@ def message_by_id(data):
         Отправка сообщения по ID.
     """
 
-    if Student.objects(user_id=data["id"]) is None:
+    if Student.objects(user_id=data["id"]).first() is None:
         return f"❌ ID {data['id']} нет в БД."
 
-    bot.send_message(data["id"], data["message"])
+    try:
+        bot.send_message(data["id"], data["message"])
+    except apihelper.ApiException:
+        return f"❌ ID {data['id']} заблокировал бота."
+
+
 
     return f"✅ Сообщение для ID: {data['id']} успешно отправленно."
 
@@ -176,7 +182,7 @@ def check_last_question():
     """
 
     count = Question.objects.count()
-    last3_qst = Question.objetcs[count - 3:count]
+    last3_qst = Question.objects[count - 3:count]
 
     msg = "Последние 3 вопроса в ДБ:\n"
     for question in last3_qst:
@@ -190,10 +196,8 @@ def check_status(data):
         Получение информации о состоянии (статуса) юзера.
     """
 
-    if (student := Student.objects(user_id=data["id"])) is None:
+    if (student:= Student.objects(user_id=data["id"].first())) is None:
         return f"❌ ID {data['id']} нет в БД."
-
-    student = student.first()
 
     return f"ID: {student.user_id}, статус: {student.status}"
 
@@ -206,14 +210,26 @@ def update_status(data):
     if data["status"] not in ALLOWED_STATUS:
         return f"❌ Статуса {data['status']} не существует."
 
-    if (student:= Student.objects(user_id=data["id"])) is None:
-        return f"❌ ID {data['user_id']} нет в БД."
+    if (student:= Student.objects(user_id=data["id"]).first()) is None:
+        return f"❌ ID {data['id']} нет в БД."
 
-    student = student.first()
     student.status = data["status"]
     student.save()
 
-    return f"✅ Статус {data['status']} для {data['id']} успешно установлен."
+    return f"✅ Статус {data['status']} для ID {data['id']} успешно установлен."
+
+
+def delete_user(data)
+    """
+        Удаление пользователя из БД.
+    """
+
+    if (student:= Student.objects(user_id=data["id"]).first()) is None:
+        return f"❌ ID {data['id']} нет в БД."
+
+    student.delete()
+
+    return f"✅ Пользователь с ID {data['id']} успешно удалён."
 
 
 def dev_menu(request):
@@ -231,6 +247,7 @@ def dev_menu(request):
         "lastquest": check_last_question,
         "status": check_status,
         "change_status": update_status,
+        "delete": delete_user,
         "usage": usage
     }
 
