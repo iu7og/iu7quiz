@@ -219,7 +219,7 @@ def update_status(data):
     return f"✅ Статус {data['status']} для ID {data['id']} успешно установлен."
 
 
-def delete_user(data)
+def delete_user(data):
     """
         Удаление пользователя из БД.
     """
