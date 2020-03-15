@@ -498,17 +498,11 @@ def dev_handler(message):
         Обработка запросов от разработчиков.
     """
 
-    print(message.chat.id, cfg.DEV_ID)
-    print("\n\n\n\n", message)
-
     if message.chat.id == cfg.DEV_ID:
         request = dbutil.form_request(message.text)
         print(request)
         reply_message = dbutil.dev_menu(request)
         bot.send_message(cfg.DEV_ID, reply_message)
-    else:
-        bot.send_message(message.chat.id, "⛔Доступ запрещён.")
-
 
 
 @bot.message_handler(
