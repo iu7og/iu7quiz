@@ -81,9 +81,9 @@ def upd_queue_handler():
     try:
         update_queue()
     except Exception:
-        return "❌ При выполнение update_queue возникла ошибка."
+        return "❌ При обновлении очереди возникла ошибка."
 
-    return "✅ update_queue успешно выполнена."
+    return "✅ Очередь успешно обновлена."
 
 
 def send_confirm_handler():
@@ -94,9 +94,9 @@ def send_confirm_handler():
     try:
         send_confirmation()
     except Exception:
-        return "❌ При выполнение send_confirmation возникла ошибка."
+        return "❌ При рассылке подтверждения  возникла ошибка."
 
-    return "✅ send_confirmation успешно выполнена."
+    return "✅ Рассылка подтверждений успешно выполнена."
 
 
 def parse_mongo_handler():
@@ -107,9 +107,9 @@ def parse_mongo_handler():
     try:
         parse_to_mongo()
     except Exception:
-        return "❌ При выполнение parse_to_mongo возникла ошибка."
+        return "❌ При парсинге вопросов возникла ошибка."
 
-    return "✅ parse_to_mongo успешно выполнена."
+    return "✅ Парсинг вопросов успешно выполненен."
 
 
 def blocked_users_message(users):
@@ -119,7 +119,7 @@ def blocked_users_message(users):
 
     msg = ""
     for user in users:
-        msg += user["login"] + str(user["id"]) + "\n"
+        msg += "@" + user["login"] + " ID:" + str(user["id"]) + "\n"
 
     return msg
 
@@ -148,7 +148,7 @@ def message_by_status(data):
             blocked_id.append({"login": student.login, "id": student.user_id})
 
     if blocked_id:
-        info = "⚠️ Не удалось отправить сообщения для:\n" + blocked_users_message(blocked_id)
+        info = "⚠️  Не удалось отправить сообщения для:\n" + blocked_users_message(blocked_id)
     else:
         info = f"✅ Сообщение для юзеров со стаусом {data['status']} успешно отправленно."
 
@@ -160,7 +160,7 @@ def message_by_id(data):
         Отправка сообщения по ID.
     """
 
-    if Student.objects(user_id=data["id"]).first() is None:
+    if (student := Student.objects(user_id=data["id"]).first()) is None:
         return f"❌ ID {data['id']} нет в БД."
 
     try:
@@ -170,7 +170,7 @@ def message_by_id(data):
 
 
 
-    return f"✅ Сообщение для ID: {data['id']} успешно отправленно."
+    return f"✅ Сообщение для ID {data['id']} (@{student.login}) успешно отправленно."
 
 
 def check_process():
@@ -178,7 +178,7 @@ def check_process():
         Информация о существовании параллельного процесса.
     """
 
-    return "В разработке"
+    return "Серёга, поставь psutil..."
 
 
 def check_last_question():
@@ -204,7 +204,7 @@ def check_status(data):
     if (student:= Student.objects(user_id=data["id"]).first()) is None:
         return f"❌ ID {data['id']} нет в БД."
 
-    return f"ID: {student.user_id}, статус: {student.status}"
+    return f"ID: {student.user_id}, логин: @{student.login}, статус: {student.status}"
 
 
 def update_status(data):
@@ -221,7 +221,7 @@ def update_status(data):
     student.status = data["status"]
     student.save()
 
-    return f"✅ Статус {data['status']} для ID {data['id']} успешно установлен."
+    return f"✅ Статус {data['status']} для ID {data['id']} (@{student.login}) успешно установлен."
 
 
 def delete_user(data):
