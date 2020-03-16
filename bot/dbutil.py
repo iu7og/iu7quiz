@@ -22,7 +22,7 @@ def usage():
         "\t1. Вызввать update_queue - /dev updqueue\n" + \
         "\t2. Вызвать send_confirmation - /dev sndconfirm\n" + \
         "\t3. Вызвать parse_to_mongo - /dev prsmongo\n" + \
-        "\t4. Разослать сообщение - /dev sendmsg <status> <сообщение>\n" + \
+        "\t4. Разослать сообщение - /dev sendmsg <status> <сообщение> (all - отправить всем)\n" + \
         "\t4. Разослать сообщение по ID - /dev sendmsgid <id> <сообщение>\n" + \
         "\t5. Состояние фонового процесса - /dev checkproc\n" + \
         "\t6. Посмотреть последний загруженный вопрос - /dev lastquest\n" + \
@@ -132,11 +132,16 @@ def message_by_status(data):
     if len(data) != 2:
         return "❌ Неверно заданны аргументы. См. /dev usage."
 
-    if data["status"] not in ALLOWED_STATUS:
+    if data["status"] not in ALLOWED_STATUS and data["status"] != "all":
         return f"❌ Статуса {data['status']} не существует."
 
+    if data["status"] == "all":
+        students = Student.objects()
+    else:
+        students = Student.objects(status=data["status"])
+
     blocked_id = []
-    for student in Student.objects(status=data["status"]):
+    for student in students:
         try:
             bot.send_message(student.user_id, data["message"])
         except apihelper.ApiException:
