@@ -135,6 +135,8 @@ def send_confirmation():
         Отправка сообщения с вопросом о подтверждении готовности отвечать на вопрос.
     """
 
+    print("SEND_CONFIRMATION IS RUNNING. TIME NOW: {datetime.today()}")
+
     for student in Student.objects():
         if cfg.SC_DEBUG:
             print("#SC_DEBUG")
@@ -188,6 +190,7 @@ def update_queue():
     """
 
     today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
+    print("UPDATE QUEUE IS RUNNING. TIME NOW: {datetime.today()}")
 
     for student in Student.objects(status__ne="registration"):
 
@@ -264,7 +267,7 @@ def schedule_bot():
     """
 
     schedule.every().day.at("09:00").do(parse_to_mongo)
-    schedule.every().day.at("10:05").do(update_queue)
+    schedule.every().day.at("16:05").do(update_queue)
     schedule.every().day.at("21:00").do(send_reminder)
 
     while True:
