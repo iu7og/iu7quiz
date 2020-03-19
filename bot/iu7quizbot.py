@@ -177,9 +177,7 @@ def send_single_confirmation(student, is_first):
         bot.send_message(student.user_id, "📝")
         bot.send_message(student.user_id, message, reply_markup=markup)
     except telebot.apihelper.ApiException:
-        print("Заблокировал бота:", student.user_id, student.login)
-    except Exception:
-        print("Произошла полная жесть...")
+        print("Bot blocked by: :", student.user_id, student.login)
 
     return student
 
@@ -210,8 +208,6 @@ def update_queue():
                 bot.send_message(student.user_id, cfg.MISS_MESSAGE)
         except telebot.apihelper.ApiException:
             pass
-        except Exception:
-            print("Произошла полная жесть... (need_msg)")
 
         # Вопрос дня добавляется на самое первое место
         for i in range(today_question_day * cfg.QUESTION_PORTION,
@@ -258,8 +254,8 @@ def send_reminder():
     for student in Student.objects(status="is_ready"):
         try:
             bot.send_message(student.user_id,
-                            "Ты совсем забыл про меня 🥺 " + \
-                            "Может найдешь минутку и ответишь на мои вопросы?")
+                             "Ты совсем забыл про меня 🥺 " + \
+                             "Может найдешь минутку и ответишь на мои вопросы?")
         except telebot.apihelper.ApiException:
             pass
 
