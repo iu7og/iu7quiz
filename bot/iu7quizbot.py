@@ -135,7 +135,7 @@ def send_confirmation():
         Отправка сообщения с вопросом о подтверждении готовности отвечать на вопрос.
     """
 
-    print("SEND_CONFIRMATION IS RUNNING. TIME NOW: {datetime.today()}")
+    print(f"SEND_CONFIRMATION IS RUNNING. TIME NOW: {datetime.today()}")
 
     for student in Student.objects():
         if cfg.SC_DEBUG:
@@ -190,7 +190,7 @@ def update_queue():
     """
 
     today_question_day = (datetime.today() - cfg.FIRST_QUESTION_DAY).days
-    print("UPDATE QUEUE IS RUNNING. TIME NOW: {datetime.today()}")
+    print(f"UPDATE QUEUE IS RUNNING. TIME NOW: {datetime.today()}")
 
     for student in Student.objects(status__ne="registration"):
 
@@ -256,9 +256,12 @@ def send_reminder():
     """
 
     for student in Student.objects(status="is_ready"):
-        bot.send_message(student.user_id,
-                         "Ты совсем забыл про меня 🥺 " + \
-                         "Может найдешь минутку и ответишь на мои вопросы?")
+        try:
+            bot.send_message(student.user_id,
+                            "Ты совсем забыл про меня 🥺 " + \
+                            "Может найдешь минутку и ответишь на мои вопросы?")
+        except telebot.apihelper.ApiException:
+            pass
 
 
 def schedule_bot():
