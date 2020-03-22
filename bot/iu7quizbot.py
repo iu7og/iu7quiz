@@ -618,6 +618,8 @@ def query_handler_questions(call):
         student_answer = call.message.text.split("\n")[cfg.ANSWERS_BTNS[call.data] + 1][4:]
         correct_answer = question.answers[cfg.ANSWERS_BTNS[question.correct_answer] - 1]
 
+        datastore = stat.update_datastore(datastore, day)
+
         # Очередь очищается от текущего вопроса (и обзаводится новым в некоторых случаях)
         # внутри handler'ов.
         if student_answer == correct_answer:

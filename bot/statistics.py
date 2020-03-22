@@ -18,13 +18,18 @@ def ready_update(datastore, day, start_time):
 
     # Если по какой-то причине нет словаря, описывающего вопрос сегодняшнего дня,
     # то добавить словари для сегодняшнего дня и всех предыдущих.
+    datastore = update_datastore(datastore, day)
+    return datastore, (time.time() - start_time) / 3600
+
+
+def update_datastore(datastore, day):
     while len(datastore) <= day:
         datastore.append(dict())
         # Проинициализируем словарь.
         datastore[-1]["right"] = list()
         datastore[-1]["wrong"] = list()
 
-    return datastore, (time.time() - start_time) / 3600
+    return datastore
 
 
 def right_answer_handler(question_object, question, times_cortege, queue):
