@@ -54,7 +54,7 @@ async def handle(request):
 app.router.add_post("/{token}/", handle)
 
 bot.remove_webhook()
-time.sleep(1)
+time.sleep(2)
 bot.set_webhook(url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH)
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
@@ -144,7 +144,7 @@ def send_confirmation():
             print("queue_len:", len(student.queue))
             print("student.queue:", student.queue)
             print("queue[0]:", student.queue[0])
-            print("big condition:", (student.status == "standby" or student.status == "question") \
+            print("big condition:", (student.status == "standby" or student.status == "question")
                   and len(student.queue) and student.queue[0]["days_left"] <= 0)
 
         if student.status == "standby":
@@ -254,7 +254,7 @@ def send_reminder():
     for student in Student.objects(status="is_ready"):
         try:
             bot.send_message(student.user_id,
-                             "Ты совсем забыл про меня 🥺 " + \
+                             "Ты совсем забыл про меня 🥺 " +
                              "Может найдешь минутку и ответишь на мои вопросы?")
         except telebot.apihelper.ApiException:
             pass
@@ -467,7 +467,8 @@ def live_question_handler(message):
     """
 
     handle_messages(message)
-    if student := Student.objects(user_id=message.chat.id):
+    if student:
+        = Student.objects(user_id=message.chat.id):
         student = student.first()
 
         if student.status == "standby":
