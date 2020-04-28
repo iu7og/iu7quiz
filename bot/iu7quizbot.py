@@ -34,6 +34,7 @@ telebot.logger.setLevel(logging.INFO)
 bot = telebot.TeleBot(cfg.TOKEN)
 mongoengine.connect(host=cfg.HOST)
 
+"""
 app = web.Application()
 
 
@@ -59,6 +60,7 @@ bot.set_webhook(url=cfg.WEBHOOK_URL_BASE + cfg.WEBHOOK_URL_PATH)
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 context.load_cert_chain(cfg.WEBHOOK_SSL_CERT, cfg.WEBHOOK_SSL_PRIV)
+"""
 
 
 def generate_r2d2():
@@ -704,9 +706,12 @@ def query_handler_scroll(call):
 if __name__ == "__main__":
     multiprocessing.Process(target=schedule_bot, args=()).start()
 
+    bot.polling()
+    """
     web.run_app(
         app,
         host=cfg.WEBHOOK_LISTEN,
         port=cfg.WEBHOOK_PORT,
         ssl_context=context,
     )
+    """
