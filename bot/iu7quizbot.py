@@ -681,6 +681,10 @@ def query_handler_scroll(call):
         call.message.text
     )
 
+    if new_page == call.message.text:
+        print("SAME PAGES")
+        return
+
     if is_border:
         markup = telebot.types.InlineKeyboardMarkup()
         new_btn = "◀️" if call.data == "▶️" else "▶️"
