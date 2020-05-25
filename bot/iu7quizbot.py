@@ -210,9 +210,9 @@ def update_queue():
             pass
 
         # Вопрос дня добавляется на самое первое место
-        for i in range(today_question_day * cfg.QUESTION_PORTION,
-                       (today_question_day + 1) * cfg.QUESTION_PORTION):
-            student.queue.insert(0, {"question_day": i, "days_left": 0})
+        #for i in range(today_question_day * cfg.QUESTION_PORTION,
+                       #(today_question_day + 1) * cfg.QUESTION_PORTION):
+            #student.queue.insert(0, {"question_day": i, "days_left": 0})
 
         if cfg.DEV_MODE_QUEUE:
             print(f"Queue after: {student.queue}\n")
@@ -266,8 +266,8 @@ def schedule_bot():
     """
 
     #schedule.every().day.at("09:00").do(parse_to_mongo)
-    #schedule.every().day.at("12:00").do(update_queue)
-    #schedule.every().day.at("21:00").do(send_reminder)
+    schedule.every().day.at("12:00").do(update_queue)
+    schedule.every().day.at("21:00").do(send_reminder)
 
     while True:
         schedule.run_pending()
