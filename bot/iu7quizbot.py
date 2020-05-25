@@ -265,9 +265,9 @@ def schedule_bot():
         Планировщик сообщений.
     """
 
-    schedule.every().day.at("09:00").do(parse_to_mongo)
-    schedule.every().day.at("12:00").do(update_queue)
-    schedule.every().day.at("21:00").do(send_reminder)
+    #schedule.every().day.at("09:00").do(parse_to_mongo)
+    #schedule.every().day.at("12:00").do(update_queue)
+    #schedule.every().day.at("21:00").do(send_reminder)
 
     while True:
         schedule.run_pending()
